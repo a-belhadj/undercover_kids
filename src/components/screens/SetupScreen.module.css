@@ -1,0 +1,507 @@
+/* ── Stepper (player count, undercover, mr white) ── */
+.roleSection {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+}
+
+.roleLabel {
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.stepperBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 1.3rem;
+  font-weight: 700;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 2px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 150ms;
+}
+
+.stepperBtn:active:not(:disabled) {
+  transform: scale(0.9);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.stepperBtn:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+.stepperValue {
+  min-width: 2rem;
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+/* ── Toggle (easy mode) ─────────────────────── */
+.toggleLabelWrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.toggleSub {
+  font-size: 0.7rem;
+  color: var(--color-text-light);
+  line-height: 1.3;
+  opacity: 0.8;
+}
+
+.nameInput {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 320px;
+}
+
+.input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 1.1rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  outline: none;
+  transition: border-color 150ms;
+}
+
+.input:focus {
+  border-color: var(--color-primary);
+}
+
+.playerList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 320px;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 320px;
+  padding: 0.75rem 1rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--color-border);
+  cursor: pointer;
+  transition: border-color 150ms;
+  text-align: left;
+  color: var(--color-text);
+}
+
+.toggle:active {
+  border-color: var(--color-primary);
+}
+
+.toggleLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.switch {
+  position: relative;
+  width: 52px;
+  height: 30px;
+  background: var(--color-border);
+  border-radius: 15px;
+  cursor: pointer;
+  transition: background 200ms;
+  border: none;
+  flex-shrink: 0;
+}
+
+.switchOn {
+  composes: switch;
+  background: var(--color-primary);
+}
+
+.switchKnob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 200ms;
+}
+
+.switchOn .switchKnob {
+  transform: translateX(22px);
+}
+
+.categories {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 320px;
+}
+
+.catBtn {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.6rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text);
+  transition: all 150ms;
+}
+
+.catBtn:active {
+  transform: scale(0.95);
+}
+
+.catBtnActive {
+  composes: catBtn;
+  border-color: var(--color-primary);
+  background: rgba(108, 92, 231, 0.08);
+  color: var(--color-primary);
+}
+
+.catBtnDisabled {
+  composes: catBtn;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.catIcon {
+  font-size: 1.8rem;
+}
+
+.catCount {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 0.55rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+  opacity: 0.6;
+  line-height: 1;
+}
+
+.managePairsBtn {
+  width: 100%;
+  max-width: 320px;
+  padding: 0.6rem 1rem;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text-light);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 150ms;
+}
+
+.managePairsBtn:active {
+  transform: scale(0.97);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-text-light);
+  align-self: flex-start;
+  max-width: 320px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.savedBadge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: rgba(108, 92, 231, 0.1);
+  padding: 0.15rem 0.5rem;
+  border-radius: 10px;
+}
+
+/* Avatar picker */
+.avatarPickerOverlay {
+  position: fixed;
+  inset: 0;
+  background: transparent;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  z-index: 999;
+  padding: 1rem;
+  animation: fadeIn 200ms ease-out;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.avatarPickerSheet {
+  background: var(--color-bg);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 400px;
+  max-height: 80vh;
+  max-height: 80dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  border: 3px solid var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.2), 0 8px 32px rgba(0, 0, 0, 0.3);
+  animation: scaleIn 200ms ease-out;
+  margin: 0 auto;
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.avatarPickerTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.avatarGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  justify-items: center;
+}
+
+.avatarOption {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  font-size: 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface);
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: all 150ms;
+}
+
+.avatarOption:active {
+  transform: scale(0.9);
+}
+
+.avatarOptionSelected {
+  composes: avatarOption;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.3);
+}
+
+.avatarOptionTaken {
+  composes: avatarOption;
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+.avatarBtn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* ── Load Group button ──────────────────────── */
+.loadGroupBtn {
+  margin-left: auto;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-sm);
+  background: rgba(108, 92, 231, 0.1);
+  color: var(--color-primary);
+  font-size: 0.7rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 150ms;
+}
+
+.loadGroupBtn:active {
+  transform: scale(0.95);
+  background: rgba(108, 92, 231, 0.2);
+}
+
+/* ── Group picker overlay ───────────────────── */
+.groupPickerOverlay {
+  position: fixed;
+  inset: 0;
+  background: transparent;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  z-index: 60;
+  padding: 1rem;
+  animation: fadeIn 200ms ease-out;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+}
+
+.groupPickerSheet {
+  background: var(--color-bg);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  width: 100%;
+  max-width: 360px;
+  max-height: 80vh;
+  max-height: 80dvh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
+  border: 3px solid var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(108, 92, 231, 0.2), 0 8px 32px rgba(0, 0, 0, 0.3);
+  animation: scaleIn 200ms ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0 auto;
+}
+
+.groupPickerTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 0.25rem;
+}
+
+.groupPickerItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.75rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--color-border);
+  cursor: pointer;
+  transition: all 150ms;
+  text-align: left;
+}
+
+.groupPickerItem:active {
+  transform: scale(0.97);
+  border-color: var(--color-primary);
+}
+
+.groupPickerName {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.groupPickerCount {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.groupPickerAvatars {
+  display: flex;
+  gap: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.groupPickerAvatar {
+  font-size: 1.2rem;
+}
+
+/* ── Group buttons (Charger + Créer) ────────── */
+.groupBtns {
+  margin-left: auto;
+  display: flex;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+/* ── Create group overlay extras ────────────── */
+.createGroupPreview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.5rem 0;
+}
+
+.createGroupInput {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+  outline: none;
+  transition: border-color 150ms;
+}
+
+.createGroupInput:focus {
+  border-color: var(--color-primary);
+}
+
+.groupPlayerChip {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem 0.2rem 0.25rem;
+  background: var(--color-surface);
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.groupPlayerChipEmoji {
+  font-size: 1rem;
+}

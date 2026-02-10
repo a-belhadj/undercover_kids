@@ -1,0 +1,536 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  padding: 0.5rem;
+  animation: fadeIn 200ms ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.panel {
+  background: var(--color-bg);
+  border-radius: var(--radius);
+  width: 100%;
+  max-width: 420px;
+  max-height: 85vh;
+  max-height: 85dvh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow);
+  animation: scaleIn 200ms ease-out;
+  overflow: hidden;
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1rem 0.5rem;
+}
+
+.title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  flex: 1;
+}
+
+.closeBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-light);
+}
+
+/* ── Tabs ───────────────────────────────────── */
+.tabs {
+  display: flex;
+  border-bottom: 2px solid var(--color-border);
+  padding: 0 0.5rem;
+}
+
+.tab {
+  flex: 1;
+  padding: 0.6rem 0.25rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-text-light);
+  background: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: all 150ms;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.tab:active {
+  transform: none;
+}
+
+.tabActive {
+  composes: tab;
+  color: var(--color-primary);
+  border-bottom-color: var(--color-primary);
+}
+
+.tabIcon {
+  font-size: 1.1rem;
+}
+
+.tabContent {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* ── Player Manager tab ─────────────────────── */
+.rosterSection {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rosterEmpty {
+  text-align: center;
+  color: var(--color-text-light);
+  font-size: 0.9rem;
+  padding: 2rem 1rem;
+}
+
+.rosterRow {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.6rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+}
+
+.rosterAvatar {
+  flex-shrink: 0;
+}
+
+.rosterName {
+  flex: 1;
+  font-size: 0.95rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rosterDeleteBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-danger);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+.rosterDeleteBtn:active {
+  opacity: 1;
+  transform: scale(0.9);
+}
+
+.addPlayerForm {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding: 0.5rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  border: 2px dashed var(--color-border);
+}
+
+.addPlayerAvatarBtn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.addPlayerInput {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+  outline: none;
+  min-width: 0;
+}
+
+.addPlayerInput:focus {
+  border-color: var(--color-primary);
+}
+
+.addPlayerBtn {
+  flex-shrink: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.addPlayerBtn:disabled {
+  opacity: 0.4;
+}
+
+/* Avatar mini-picker inline */
+.miniAvatarPicker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0.5rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+}
+
+.miniAvatarOption {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+
+.miniAvatarOption:active {
+  transform: scale(0.9);
+}
+
+.miniAvatarOptionSelected {
+  composes: miniAvatarOption;
+  border-color: var(--color-primary);
+}
+
+.miniColorOption {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid transparent;
+  cursor: pointer;
+  color: white;
+  font-weight: 700;
+}
+
+.miniColorOptionSelected {
+  composes: miniColorOption;
+  border-color: var(--color-text);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.15);
+}
+
+.miniPickerLabel {
+  width: 100%;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--color-text-light);
+  margin-top: 0.25rem;
+}
+
+/* ── Group Manager tab ──────────────────────── */
+.groupSection {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.groupEmpty {
+  text-align: center;
+  color: var(--color-text-light);
+  font-size: 0.9rem;
+  padding: 2rem 1rem;
+}
+
+.groupCard {
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  padding: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.groupHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.groupName {
+  flex: 1;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.groupCount {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  background: rgba(108, 92, 231, 0.1);
+  padding: 0.15rem 0.4rem;
+  border-radius: 8px;
+}
+
+.groupDeleteBtn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-danger);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+}
+
+.groupDeleteBtn:active {
+  opacity: 1;
+  transform: scale(0.9);
+}
+
+.groupPlayers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.groupPlayerChip {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.5rem 0.2rem 0.25rem;
+  background: var(--color-bg);
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.groupPlayerChipEmoji {
+  font-size: 1rem;
+}
+
+/* Add group form */
+.addGroupForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.6rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  border: 2px dashed var(--color-border);
+}
+
+.addGroupRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.addGroupInput {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  background: var(--color-bg);
+  color: var(--color-text);
+  outline: none;
+  min-width: 0;
+}
+
+.addGroupInput:focus {
+  border-color: var(--color-primary);
+}
+
+.addGroupBtn {
+  flex-shrink: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: white;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.addGroupBtn:disabled {
+  opacity: 0.4;
+}
+
+.selectPlayersLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+}
+
+.selectPlayersList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.selectPlayerBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.3rem 0.6rem 0.3rem 0.3rem;
+  background: var(--color-bg);
+  border: 2px solid var(--color-border);
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 150ms;
+}
+
+.selectPlayerBtn:active {
+  transform: scale(0.95);
+}
+
+.selectPlayerBtnActive {
+  composes: selectPlayerBtn;
+  border-color: var(--color-primary);
+  background: rgba(108, 92, 231, 0.08);
+  color: var(--color-primary);
+}
+
+.selectPlayerEmoji {
+  font-size: 1.1rem;
+}
+
+.noRosterHint {
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+  font-style: italic;
+  text-align: center;
+  padding: 0.5rem;
+}
+
+/* ── Anti-cheat tab ──────────────────────────── */
+.antiCheatSection {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.antiCheatItem {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border: none;
+  text-align: left;
+  width: 100%;
+}
+
+.antiCheatItem:active {
+  transform: none;
+  opacity: 0.8;
+}
+
+.antiCheatIcon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  width: 28px;
+  text-align: center;
+}
+
+.antiCheatLabel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.antiCheatName {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.antiCheatDesc {
+  font-size: 0.7rem;
+  color: var(--color-text-light);
+  line-height: 1.3;
+}
+
+.antiCheatSwitch {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--color-border);
+  position: relative;
+  flex-shrink: 0;
+  transition: background 200ms;
+}
+
+.antiCheatSwitchOn {
+  composes: antiCheatSwitch;
+  background: var(--color-primary);
+}
+
+.antiCheatSwitchKnob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: white;
+  transition: transform 200ms;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+}
+
+.antiCheatSwitchOn .antiCheatSwitchKnob {
+  transform: translateX(20px);
+}
+
+.antiCheatDisabled {
+  opacity: 0.4;
+  pointer-events: none;
+}

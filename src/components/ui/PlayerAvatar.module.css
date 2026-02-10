@@ -1,0 +1,51 @@
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 1.6rem;
+  flex-shrink: 0;
+}
+
+.small {
+  width: 40px;
+  height: 40px;
+  font-size: 1.2rem;
+}
+
+.medium {
+  width: 56px;
+  height: 56px;
+  font-size: 1.6rem;
+}
+
+.large {
+  width: min(64px, 10vh);
+  height: min(64px, 10vh);
+  font-size: min(2rem, 6vh);
+}
+
+.nameTag {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.nameText {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-text);
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.avatarImg {
+  width: 70%;
+  height: 70%;
+  object-fit: contain;
+  pointer-events: none;
+}

@@ -1,0 +1,54 @@
+.card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 140px;
+  height: 140px;
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  cursor: default;
+}
+
+.emoji {
+  font-size: 5rem;
+  line-height: 1;
+}
+
+.image {
+  width: 80%;
+  height: 80%;
+  object-fit: contain;
+}
+
+.large {
+  width: min(150px, 22vh);
+  height: min(150px, 22vh);
+}
+
+.large .emoji {
+  font-size: min(5.5rem, 15vh);
+}
+
+.large .image {
+  width: 85%;
+  height: 85%;
+}
+
+.selectable {
+  cursor: pointer;
+  transition: transform 150ms, box-shadow 150ms;
+}
+
+.selectable:active {
+  transform: scale(0.93);
+}
+
+.selected {
+  box-shadow: 0 0 0 4px var(--color-primary), var(--shadow);
+}
+
+.mystery {
+  font-size: 5rem;
+  background: linear-gradient(135deg, var(--color-mrwhite), #b2bec3);
+}
