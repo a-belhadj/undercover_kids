@@ -72,16 +72,9 @@
   opacity: 0.8;
 }
 
-.nameInput {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  width: 100%;
-  max-width: 320px;
-}
-
 .input {
   flex: 1;
+  min-width: 0;
   padding: 0.75rem 1rem;
   border: 2px solid var(--color-border);
   border-radius: var(--radius-sm);
@@ -357,40 +350,59 @@
   cursor: pointer;
 }
 
-/* ── Reorder buttons ────────────────────────── */
-.reorderBtns {
-  display: flex;
-  flex-direction: row;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.reorderBtn {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  background: var(--color-surface);
-  border: 1.5px solid var(--color-border);
-  font-size: 0.75rem;
-  line-height: 1;
+/* ── Drag handle ────────────────────────────── */
+.dragHandle {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 28px;
+  height: 36px;
+  flex-shrink: 0;
+  font-size: 1.2rem;
   color: var(--color-text-light);
-  cursor: pointer;
-  padding: 0;
-  transition: all 150ms;
+  opacity: 0.45;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  letter-spacing: 1px;
 }
 
-.reorderBtn:active:not(:disabled) {
-  transform: scale(0.9);
-  border-color: var(--color-primary);
-  color: var(--color-primary);
+.dragHandle:active {
+  cursor: grabbing;
+  opacity: 0.8;
 }
 
-.reorderBtn:disabled {
-  opacity: 0.2;
-  cursor: default;
+/* ── Drag feedback on player row ────────────── */
+.nameInput {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 320px;
+  transition: transform 200ms ease, opacity 200ms ease, box-shadow 200ms ease;
+  position: relative;
+  border-radius: var(--radius-sm);
+}
+
+.dragging {
+  transform: scale(1.03);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  opacity: 0.85;
+  z-index: 50;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+}
+
+.dragOver::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--color-primary);
+  border-radius: 2px;
 }
 
 /* ── Load Group button ──────────────────────── */

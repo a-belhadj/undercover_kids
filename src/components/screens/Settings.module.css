@@ -117,6 +117,28 @@
   padding: 2rem 1rem;
 }
 
+/* ── Drag handle (roster) ──────────────────── */
+.dragHandle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 32px;
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  color: var(--color-text-light);
+  opacity: 0.45;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.dragHandle:active {
+  cursor: grabbing;
+  opacity: 0.8;
+}
+
 .rosterRow {
   display: flex;
   align-items: center;
@@ -124,42 +146,26 @@
   padding: 0.5rem 0.6rem;
   background: var(--color-surface);
   border-radius: var(--radius-sm);
+  transition: transform 200ms ease, opacity 200ms ease, box-shadow 200ms ease;
+  position: relative;
 }
 
-/* ── Reorder buttons (roster + group chips) ─── */
-.reorderBtns {
-  display: flex;
-  flex-direction: row;
-  gap: 4px;
-  flex-shrink: 0;
+.rosterRowDragging {
+  transform: scale(1.03);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+  opacity: 0.85;
+  z-index: 50;
 }
 
-.reorderBtn {
-  width: 28px;
-  height: 28px;
-  border-radius: 5px;
-  background: var(--color-bg);
-  border: 1.5px solid var(--color-border);
-  font-size: 0.65rem;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text-light);
-  cursor: pointer;
-  padding: 0;
-  transition: all 150ms;
-}
-
-.reorderBtn:active:not(:disabled) {
-  transform: scale(0.9);
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
-.reorderBtn:disabled {
-  opacity: 0.2;
-  cursor: default;
+.rosterRowDragOver::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--color-primary);
+  border-radius: 2px;
 }
 
 .rosterAvatar {
@@ -380,44 +386,48 @@
   border-radius: 20px;
   font-size: 0.75rem;
   font-weight: 600;
+  transition: transform 200ms ease, opacity 200ms ease, box-shadow 200ms ease;
+  position: relative;
+}
+
+.chipDragging {
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  opacity: 0.85;
+  z-index: 50;
+}
+
+.chipDragOver::before {
+  content: '';
+  position: absolute;
+  left: -4px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--color-primary);
+  border-radius: 2px;
 }
 
 .groupPlayerChipEmoji {
   font-size: 1rem;
 }
 
-.chipReorderBtns {
-  display: flex;
-  gap: 2px;
-  margin-left: 0.15rem;
-  flex-shrink: 0;
-}
-
-.chipReorderBtn {
-  width: 22px;
-  height: 22px;
-  border-radius: 4px;
-  background: none;
-  border: 1px solid var(--color-border);
-  font-size: 0.55rem;
-  line-height: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* ── Drag handle for group member chips ─────── */
+.chipDragHandle {
+  font-size: 0.75rem;
   color: var(--color-text-light);
-  cursor: pointer;
-  padding: 0;
-  transition: all 150ms;
+  opacity: 0.45;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  margin-left: 0.1rem;
+  line-height: 1;
 }
 
-.chipReorderBtn:active:not(:disabled) {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
-.chipReorderBtn:disabled {
-  opacity: 0.2;
-  cursor: default;
+.chipDragHandle:active {
+  cursor: grabbing;
+  opacity: 0.8;
 }
 
 /* Add group form */

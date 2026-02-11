@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import { CATEGORIES, emojiPairs } from '../../data/emojiPairs';
 import { AVATAR_EMOJIS, AVATAR_COLORS } from '../../types/game';
@@ -199,11 +199,83 @@ export default function SetupScreen() {
     setPlayerColors(next);
   };
 
-  const swapPlayers = (a: number, b: number) => {
-    setNames((prev) => { const n = [...prev]; [n[a], n[b]] = [n[b], n[a]]; return n; });
-    setPlayerAvatars((prev) => { const n = [...prev]; [n[a], n[b]] = [n[b], n[a]]; return n; });
-    setPlayerColors((prev) => { const n = [...prev]; [n[a], n[b]] = [n[b], n[a]]; return n; });
-  };
+  const movePlayer = useCallback((from: number, to: number) => {
+    if (from === to) return;
+    const move = <T,>(arr: T[]) => {
+      const next = [...arr];
+      const [item] = next.splice(from, 1);
+      next.splice(to, 0, item);
+      return next;
+    };
+    setNames(move);
+    setPlayerAvatars(move);
+    setPlayerColors(move);
+  }, []);
+
+  // ── Drag & drop state ──
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [overIndex, setOverIndex] = useState<number | null>(null);
+  const listRef = useRef<HTMLFormElement>(null);
+  const dragStartY = useRef(0);
+
+  const getItemIndexAtY = useCallback((clientY: number): number | null => {
+    if (!listRef.current) return null;
+    const items = listRef.current.querySelectorAll('[data-player-index]');
+    for (let i = 0; i < items.length; i++) {
+      const rect = items[i].getBoundingClientRect();
+      const midY = rect.top + rect.height / 2;
+      if (clientY < midY) return i;
+    }
+    return items.length - 1;
+  }, []);
+
+  const handleDragStart = useCallback((index: number, clientY: number) => {
+    setDragIndex(index);
+    setOverIndex(index);
+    dragStartY.current = clientY;
+  }, []);
+
+  const handleDragMove = useCallback((clientY: number) => {
+    const target = getItemIndexAtY(clientY);
+    if (target !== null) setOverIndex(target);
+  }, [getItemIndexAtY]);
+
+  const handleDragEnd = useCallback(() => {
+    if (dragIndex !== null && overIndex !== null && dragIndex !== overIndex) {
+      movePlayer(dragIndex, overIndex);
+    }
+    setDragIndex(null);
+    setOverIndex(null);
+  }, [dragIndex, overIndex, movePlayer]);
+
+  // Global pointer/touch listeners during drag
+  useEffect(() => {
+    if (dragIndex === null) return;
+
+    const onMove = (e: PointerEvent | TouchEvent) => {
+      e.preventDefault();
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+      handleDragMove(clientY);
+    };
+
+    const onEnd = () => handleDragEnd();
+
+    document.addEventListener('pointermove', onMove, { passive: false });
+    document.addEventListener('pointerup', onEnd);
+    document.addEventListener('pointercancel', onEnd);
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onEnd);
+    document.addEventListener('touchcancel', onEnd);
+
+    return () => {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onEnd);
+      document.removeEventListener('pointercancel', onEnd);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+      document.removeEventListener('touchcancel', onEnd);
+    };
+  }, [dragIndex, handleDragMove, handleDragEnd]);
 
   const handleStart = () => {
     const trimmed = names.slice(0, playerCount).map((n) => n.trim());
@@ -257,29 +329,30 @@ export default function SetupScreen() {
           </button>
         </span>
       </div>
-      <form className={styles.playerList} onSubmit={(e) => e.preventDefault()}>
+      <form className={styles.playerList} onSubmit={(e) => e.preventDefault()} ref={listRef}>
         {Array.from({ length: playerCount }, (_, i) => (
-          <div key={i} className={styles.nameInput}>
-            <div className={styles.reorderBtns}>
-              <button
-                type="button"
-                className={styles.reorderBtn}
-                onClick={() => swapPlayers(i, i - 1)}
-                disabled={i === 0}
-                aria-label="Monter"
-              >
-                ▲
-              </button>
-              <button
-                type="button"
-                className={styles.reorderBtn}
-                onClick={() => swapPlayers(i, i + 1)}
-                disabled={i === playerCount - 1}
-                aria-label="Descendre"
-              >
-                ▼
-              </button>
-            </div>
+          <div
+            key={i}
+            data-player-index={i}
+            className={[
+              styles.nameInput,
+              dragIndex === i ? styles.dragging : '',
+              overIndex === i && dragIndex !== null && dragIndex !== i ? styles.dragOver : '',
+            ].join(' ')}
+          >
+            <span
+              className={styles.dragHandle}
+              aria-label="Réordonner"
+              onPointerDown={(e) => {
+                e.preventDefault();
+                handleDragStart(i, e.clientY);
+              }}
+              onTouchStart={(e) => {
+                handleDragStart(i, e.touches[0].clientY);
+              }}
+            >
+              ≡
+            </span>
             <button
               type="button"
               className={styles.avatarBtn}

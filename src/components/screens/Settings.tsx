@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { RosterPlayer, PlayerGroup } from '../../types/game';
 import { AVATAR_EMOJIS, AVATAR_COLORS } from '../../types/game';
 import { loadRoster, saveRoster, loadGroups, saveGroups } from '../../lib/storage';
@@ -103,13 +103,72 @@ export default function Settings({ onClose }: SettingsProps) {
     setEditingPlayerId(null);
   }
 
-  function swapRoster(a: number, b: number) {
+  const moveRoster = useCallback((from: number, to: number) => {
+    if (from === to) return;
     setRoster((prev) => {
       const next = [...prev];
-      [next[a], next[b]] = [next[b], next[a]];
+      const [item] = next.splice(from, 1);
+      next.splice(to, 0, item);
       return next;
     });
-  }
+  }, []);
+
+  // ── Roster drag & drop ──
+  const [rosterDragIndex, setRosterDragIndex] = useState<number | null>(null);
+  const [rosterOverIndex, setRosterOverIndex] = useState<number | null>(null);
+  const rosterListRef = useRef<HTMLDivElement>(null);
+
+  const getRosterItemAtY = useCallback((clientY: number): number | null => {
+    if (!rosterListRef.current) return null;
+    const items = rosterListRef.current.querySelectorAll('[data-roster-index]');
+    for (let i = 0; i < items.length; i++) {
+      const rect = items[i].getBoundingClientRect();
+      if (clientY < rect.top + rect.height / 2) return i;
+    }
+    return items.length - 1;
+  }, []);
+
+  const handleRosterDragStart = useCallback((index: number) => {
+    setRosterDragIndex(index);
+    setRosterOverIndex(index);
+  }, []);
+
+  const handleRosterDragMove = useCallback((clientY: number) => {
+    const target = getRosterItemAtY(clientY);
+    if (target !== null) setRosterOverIndex(target);
+  }, [getRosterItemAtY]);
+
+  const handleRosterDragEnd = useCallback(() => {
+    if (rosterDragIndex !== null && rosterOverIndex !== null && rosterDragIndex !== rosterOverIndex) {
+      moveRoster(rosterDragIndex, rosterOverIndex);
+    }
+    setRosterDragIndex(null);
+    setRosterOverIndex(null);
+  }, [rosterDragIndex, rosterOverIndex, moveRoster]);
+
+  useEffect(() => {
+    if (rosterDragIndex === null) return;
+    const onMove = (e: PointerEvent | TouchEvent) => {
+      e.preventDefault();
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+      handleRosterDragMove(clientY);
+    };
+    const onEnd = () => handleRosterDragEnd();
+    document.addEventListener('pointermove', onMove, { passive: false });
+    document.addEventListener('pointerup', onEnd);
+    document.addEventListener('pointercancel', onEnd);
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onEnd);
+    document.addEventListener('touchcancel', onEnd);
+    return () => {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onEnd);
+      document.removeEventListener('pointercancel', onEnd);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+      document.removeEventListener('touchcancel', onEnd);
+    };
+  }, [rosterDragIndex, handleRosterDragMove, handleRosterDragEnd]);
 
   function addGroup() {
     if (!groupName.trim() || selectedPlayerIds.size < 3) return;
@@ -150,20 +209,87 @@ export default function Settings({ onClose }: SettingsProps) {
     setEditingGroupId(null);
   }
 
-  function swapGroupMember(groupId: string, a: number, b: number) {
+  const moveGroupMember = useCallback((groupId: string, from: number, to: number) => {
+    if (from === to) return;
     setGroups((prev) =>
       prev.map((g) => {
         if (g.id !== groupId) return g;
         const ids = [...g.playerIds];
-        [ids[a], ids[b]] = [ids[b], ids[a]];
+        const [item] = ids.splice(from, 1);
+        ids.splice(to, 0, item);
         return { ...g, playerIds: ids };
       }),
     );
-  }
+  }, []);
+
+  // ── Group member chip drag & drop ──
+  const [chipDragGroupId, setChipDragGroupId] = useState<string | null>(null);
+  const [chipDragIndex, setChipDragIndex] = useState<number | null>(null);
+  const [chipOverIndex, setChipOverIndex] = useState<number | null>(null);
+  const chipContainerRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  const getChipAtPosition = useCallback((groupId: string, clientX: number, clientY: number): number | null => {
+    const container = chipContainerRefs.current.get(groupId);
+    if (!container) return null;
+    const items = container.querySelectorAll('[data-chip-index]');
+    for (let i = 0; i < items.length; i++) {
+      const rect = items[i].getBoundingClientRect();
+      // For wrapped flex layout, check if pointer is in the chip's row first
+      if (clientY >= rect.top && clientY <= rect.bottom && clientX < rect.left + rect.width / 2) return i;
+    }
+    // If past all chips, return last index
+    return items.length - 1;
+  }, []);
+
+  const handleChipDragStart = useCallback((groupId: string, index: number) => {
+    setChipDragGroupId(groupId);
+    setChipDragIndex(index);
+    setChipOverIndex(index);
+  }, []);
+
+  const handleChipDragMove = useCallback((clientX: number, clientY: number) => {
+    if (!chipDragGroupId) return;
+    const target = getChipAtPosition(chipDragGroupId, clientX, clientY);
+    if (target !== null) setChipOverIndex(target);
+  }, [chipDragGroupId, getChipAtPosition]);
+
+  const handleChipDragEnd = useCallback(() => {
+    if (chipDragGroupId !== null && chipDragIndex !== null && chipOverIndex !== null && chipDragIndex !== chipOverIndex) {
+      moveGroupMember(chipDragGroupId, chipDragIndex, chipOverIndex);
+    }
+    setChipDragGroupId(null);
+    setChipDragIndex(null);
+    setChipOverIndex(null);
+  }, [chipDragGroupId, chipDragIndex, chipOverIndex, moveGroupMember]);
+
+  useEffect(() => {
+    if (chipDragIndex === null) return;
+    const onMove = (e: PointerEvent | TouchEvent) => {
+      e.preventDefault();
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+      handleChipDragMove(clientX, clientY);
+    };
+    const onEnd = () => handleChipDragEnd();
+    document.addEventListener('pointermove', onMove, { passive: false });
+    document.addEventListener('pointerup', onEnd);
+    document.addEventListener('pointercancel', onEnd);
+    document.addEventListener('touchmove', onMove, { passive: false });
+    document.addEventListener('touchend', onEnd);
+    document.addEventListener('touchcancel', onEnd);
+    return () => {
+      document.removeEventListener('pointermove', onMove);
+      document.removeEventListener('pointerup', onEnd);
+      document.removeEventListener('pointercancel', onEnd);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onEnd);
+      document.removeEventListener('touchcancel', onEnd);
+    };
+  }, [chipDragIndex, handleChipDragMove, handleChipDragEnd]);
 
   function renderPlayersTab() {
     return (
-      <div className={styles.rosterSection}>
+      <div className={styles.rosterSection} ref={rosterListRef}>
         {/* Existing players list */}
         {roster.length === 0 && (
           <div className={styles.rosterEmpty}>
@@ -228,11 +354,23 @@ export default function Settings({ onClose }: SettingsProps) {
             </div>
           ) : (
             /* Normal display row */
-            <div key={p.id} className={styles.rosterRow}>
-              <div className={styles.reorderBtns}>
-                <button className={styles.reorderBtn} onClick={() => swapRoster(rosterIdx, rosterIdx - 1)} disabled={rosterIdx === 0} aria-label="Monter">▲</button>
-                <button className={styles.reorderBtn} onClick={() => swapRoster(rosterIdx, rosterIdx + 1)} disabled={rosterIdx === roster.length - 1} aria-label="Descendre">▼</button>
-              </div>
+            <div
+              key={p.id}
+              data-roster-index={rosterIdx}
+              className={[
+                styles.rosterRow,
+                rosterDragIndex === rosterIdx ? styles.rosterRowDragging : '',
+                rosterOverIndex === rosterIdx && rosterDragIndex !== null && rosterDragIndex !== rosterIdx ? styles.rosterRowDragOver : '',
+              ].join(' ')}
+            >
+              <span
+                className={styles.dragHandle}
+                aria-label="Réordonner"
+                onPointerDown={(e) => { e.preventDefault(); handleRosterDragStart(rosterIdx); }}
+                onTouchStart={() => { handleRosterDragStart(rosterIdx); }}
+              >
+                ≡
+              </span>
               <div className={styles.rosterAvatar}>
                 <PlayerAvatar emoji={p.avatarEmoji} color={p.avatarColor} size="small" />
               </div>
@@ -391,15 +529,30 @@ export default function Settings({ onClose }: SettingsProps) {
                 </button>
                 <button className={styles.groupDeleteBtn} onClick={() => deleteGroup(g.id)}>✕</button>
               </div>
-              <div className={styles.groupPlayers}>
+              <div
+                className={styles.groupPlayers}
+                ref={(el) => { if (el) chipContainerRefs.current.set(g.id, el); }}
+              >
                 {members.map((m, mIdx) => (
-                  <span key={m.id} className={styles.groupPlayerChip}>
+                  <span
+                    key={m.id}
+                    data-chip-index={mIdx}
+                    className={[
+                      styles.groupPlayerChip,
+                      chipDragGroupId === g.id && chipDragIndex === mIdx ? styles.chipDragging : '',
+                      chipDragGroupId === g.id && chipOverIndex === mIdx && chipDragIndex !== mIdx ? styles.chipDragOver : '',
+                    ].join(' ')}
+                  >
+                    <span
+                      className={styles.chipDragHandle}
+                      aria-label="Réordonner"
+                      onPointerDown={(e) => { e.preventDefault(); handleChipDragStart(g.id, mIdx); }}
+                      onTouchStart={() => { handleChipDragStart(g.id, mIdx); }}
+                    >
+                      ≡
+                    </span>
                     <span className={styles.groupPlayerChipEmoji}><AvatarEmoji value={m.avatarEmoji} size={16} /></span>
                     {m.name}
-                    <span className={styles.chipReorderBtns}>
-                      <button className={styles.chipReorderBtn} onClick={() => swapGroupMember(g.id, mIdx, mIdx - 1)} disabled={mIdx === 0} aria-label="Monter">▲</button>
-                      <button className={styles.chipReorderBtn} onClick={() => swapGroupMember(g.id, mIdx, mIdx + 1)} disabled={mIdx === members.length - 1} aria-label="Descendre">▼</button>
-                    </span>
                   </span>
                 ))}
               </div>
