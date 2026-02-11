@@ -12,7 +12,7 @@ import styles from './SetupScreen.module.css';
 const MAX_PLAYERS = 16;
 
 export default function SetupScreen() {
-  const { setPhase, startGame, undercoverCount, setUndercoverCount, mrWhiteCount, setMrWhiteCount, easyMode, setEasyMode, mrWhiteCannotStart, setMrWhiteCannotStart, selectedCategories, toggleCategory, setSelectedCategory } =
+  const { setPhase, startGame, undercoverCount, setUndercoverCount, mrWhiteCount, setMrWhiteCount, intrusCount, setIntrusCount, undercoverEnabled, setUndercoverEnabled, mrWhiteEnabled, setMrWhiteEnabled, randomSplit, setRandomSplit, selectedCategories, toggleCategory, setSelectedCategory } =
     useGameStore();
 
   // Load saved profiles on mount
@@ -54,23 +54,34 @@ export default function SetupScreen() {
   const [showGroupPicker, setShowGroupPicker] = useState(false);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
-  // Clamp undercover + mrWhite when playerCount changes (never more than half, at least 1 total)
+  // Clamp intrusCount and sub-counts when config changes
   useEffect(() => {
     const maxSpecial = Math.floor(playerCount / 2);
-    let uc = undercoverCount;
-    let mw = mrWhiteCount;
-    // Clamp to fit within maxSpecial
-    if (uc + mw > maxSpecial) {
-      uc = Math.min(uc, maxSpecial);
-      mw = Math.min(mw, maxSpecial - uc);
+    // Clamp intrusCount
+    const ic = Math.max(1, Math.min(intrusCount, maxSpecial));
+    if (ic !== intrusCount) setIntrusCount(ic);
+
+    // If only one type active, force sub-counts
+    if (!mrWhiteEnabled) {
+      if (undercoverCount !== ic) setUndercoverCount(ic);
+      if (mrWhiteCount !== 0) setMrWhiteCount(0);
+    } else if (!undercoverEnabled) {
+      if (undercoverCount !== 0) setUndercoverCount(0);
+      if (mrWhiteCount !== ic) setMrWhiteCount(ic);
+    } else if (!randomSplit) {
+      // Both enabled, manual split: ensure UC + MW = intrusCount, each >= 0
+      let uc = undercoverCount;
+      let mw = mrWhiteCount;
+      if (uc + mw !== ic) {
+        // Adjust MW to match
+        mw = ic - uc;
+        if (mw < 0) { mw = 0; uc = ic; }
+        if (uc < 0) { uc = 0; mw = ic; }
+      }
+      if (uc !== undercoverCount) setUndercoverCount(uc);
+      if (mw !== mrWhiteCount) setMrWhiteCount(mw);
     }
-    // Ensure at least 1 special role
-    if (uc + mw < 1) {
-      uc = 1;
-    }
-    if (uc !== undercoverCount) setUndercoverCount(uc);
-    if (mw !== mrWhiteCount) setMrWhiteCount(mw);
-  }, [playerCount, undercoverCount, mrWhiteCount, setUndercoverCount, setMrWhiteCount]);
+  }, [playerCount, intrusCount, undercoverCount, mrWhiteCount, undercoverEnabled, mrWhiteEnabled, randomSplit, setIntrusCount, setUndercoverCount, setMrWhiteCount]);
 
   // Load roster & groups for "Charger un groupe" feature
   const roster = useMemo(() => loadRoster(), []);
@@ -383,103 +394,141 @@ export default function SetupScreen() {
         ))}
       </form>
 
-      {/* Undercover count stepper */}
+      {/* Intrus count stepper */}
       <div className={styles.roleSection}>
-        <span className={styles.roleLabel}>🥷 Undercovers</span>
+        <span className={styles.roleLabel}>🕵️ Intrus</span>
         <div className={styles.stepper}>
           <button
             className={styles.stepperBtn}
-            onClick={() => setUndercoverCount(undercoverCount - 1)}
-            disabled={undercoverCount <= 0 || undercoverCount + mrWhiteCount <= 1}
+            onClick={() => setIntrusCount(intrusCount - 1)}
+            disabled={intrusCount <= 1}
           >
             -
           </button>
-          <span className={styles.stepperValue}>{undercoverCount}</span>
+          <span className={styles.stepperValue}>{intrusCount}</span>
           <button
             className={styles.stepperBtn}
-            onClick={() => {
-              if (undercoverCount + mrWhiteCount < maxSpecial) {
-                setUndercoverCount(undercoverCount + 1);
-              } else if (mrWhiteCount > 0) {
-                setUndercoverCount(undercoverCount + 1);
-                setMrWhiteCount(mrWhiteCount - 1);
-              }
-            }}
-            disabled={undercoverCount >= maxSpecial && mrWhiteCount <= 0}
+            onClick={() => setIntrusCount(intrusCount + 1)}
+            disabled={intrusCount >= maxSpecial}
           >
             +
           </button>
         </div>
       </div>
 
-      {/* Mr. White count stepper */}
-      <div className={styles.roleSection}>
-        <span className={styles.roleLabel}>🎩 Mr. White</span>
-        <div className={styles.stepper}>
-          <button
-            className={styles.stepperBtn}
-            onClick={() => setMrWhiteCount(mrWhiteCount - 1)}
-            disabled={mrWhiteCount <= 0 || undercoverCount + mrWhiteCount <= 1}
-          >
-            -
-          </button>
-          <span className={styles.stepperValue}>{mrWhiteCount}</span>
-          <button
-            className={styles.stepperBtn}
-            onClick={() => {
-              if (undercoverCount + mrWhiteCount < maxSpecial) {
-                setMrWhiteCount(mrWhiteCount + 1);
-              } else if (undercoverCount > 0) {
-                setMrWhiteCount(mrWhiteCount + 1);
-                setUndercoverCount(undercoverCount - 1);
-              }
-            }}
-            disabled={mrWhiteCount >= maxSpecial && undercoverCount <= 0}
-          >
-            +
-          </button>
-        </div>
-      </div>
-
-      {/* Mr. White cannot start toggle (only visible when mrWhiteCount >= 1) */}
-      {mrWhiteCount >= 1 && (
-        <button
-          className={styles.toggle}
-          onClick={() => setMrWhiteCannotStart(!mrWhiteCannotStart)}
-          aria-label={mrWhiteCannotStart ? 'Autoriser Mr. White à commencer' : 'Empêcher Mr. White de commencer'}
-        >
-          <div className={styles.toggleLabelWrap}>
-            <span className={styles.toggleLabel}>
-              <span>🎩</span> Mr. White ne commence pas
-            </span>
-            <span className={styles.toggleSub}>
-              Mr. White ne sera jamais le premier à décrire son image
-            </span>
-          </div>
-          <span className={mrWhiteCannotStart ? styles.switchOn : styles.switch}>
-            <span className={styles.switchKnob} />
-          </span>
-        </button>
-      )}
-
-      {/* Easy mode toggle */}
+      {/* Undercover type toggle */}
       <button
         className={styles.toggle}
-        onClick={() => setEasyMode(!easyMode)}
-        aria-label={easyMode ? 'Désactiver le mode facile' : 'Activer le mode facile'}
+        onClick={() => {
+          if (undercoverEnabled && !mrWhiteEnabled) {
+            // Turning off UC → turn on MW
+            setUndercoverEnabled(false);
+            setMrWhiteEnabled(true);
+          } else {
+            setUndercoverEnabled(!undercoverEnabled);
+          }
+        }}
       >
         <div className={styles.toggleLabelWrap}>
           <span className={styles.toggleLabel}>
-            <span>🎓</span> Mode facile
-          </span>
-          <span className={styles.toggleSub}>
-            Affiche le rôle (Civil 🟢 / Undercover 🥷) en plus de l'image
+            <span>🥷</span> Undercover
           </span>
         </div>
-        <span className={easyMode ? styles.switchOn : styles.switch}>
+        <span className={undercoverEnabled ? styles.switchOn : styles.switch}>
           <span className={styles.switchKnob} />
         </span>
       </button>
+
+      {/* Mr. White type toggle */}
+      <button
+        className={styles.toggle}
+        onClick={() => {
+          if (mrWhiteEnabled && !undercoverEnabled) {
+            // Turning off MW → turn on UC
+            setMrWhiteEnabled(false);
+            setUndercoverEnabled(true);
+          } else {
+            setMrWhiteEnabled(!mrWhiteEnabled);
+          }
+        }}
+      >
+        <div className={styles.toggleLabelWrap}>
+          <span className={styles.toggleLabel}>
+            <span>🎩</span> Mr. White
+          </span>
+        </div>
+        <span className={mrWhiteEnabled ? styles.switchOn : styles.switch}>
+          <span className={styles.switchKnob} />
+        </span>
+      </button>
+
+      {/* Split options: only when both types active and intrusCount > 1 */}
+      {undercoverEnabled && mrWhiteEnabled && intrusCount > 1 && (
+        <>
+          <button
+            className={styles.toggle}
+            onClick={() => setRandomSplit(!randomSplit)}
+          >
+            <div className={styles.toggleLabelWrap}>
+              <span className={styles.toggleLabel}>
+                <span>🎲</span> Répartition aléatoire
+              </span>
+              <span className={styles.toggleSub}>
+                Le jeu décide combien d'Undercovers et de Mr. White
+              </span>
+            </div>
+            <span className={randomSplit ? styles.switchOn : styles.switch}>
+              <span className={styles.switchKnob} />
+            </span>
+          </button>
+
+          {/* Manual sub-steppers when randomSplit is off */}
+          {!randomSplit && (
+            <div className={styles.splitSection}>
+              <div className={styles.roleSection}>
+                <span className={styles.roleLabel}>🥷 Undercovers</span>
+                <div className={styles.stepper}>
+                  <button
+                    className={styles.stepperBtn}
+                    onClick={() => { setUndercoverCount(undercoverCount - 1); setMrWhiteCount(mrWhiteCount + 1); }}
+                    disabled={undercoverCount <= 0}
+                  >
+                    -
+                  </button>
+                  <span className={styles.stepperValue}>{undercoverCount}</span>
+                  <button
+                    className={styles.stepperBtn}
+                    onClick={() => { setUndercoverCount(undercoverCount + 1); setMrWhiteCount(mrWhiteCount - 1); }}
+                    disabled={mrWhiteCount <= 0}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+              <div className={styles.roleSection}>
+                <span className={styles.roleLabel}>🎩 Mr. White</span>
+                <div className={styles.stepper}>
+                  <button
+                    className={styles.stepperBtn}
+                    onClick={() => { setMrWhiteCount(mrWhiteCount - 1); setUndercoverCount(undercoverCount + 1); }}
+                    disabled={mrWhiteCount <= 0}
+                  >
+                    -
+                  </button>
+                  <span className={styles.stepperValue}>{mrWhiteCount}</span>
+                  <button
+                    className={styles.stepperBtn}
+                    onClick={() => { setMrWhiteCount(mrWhiteCount + 1); setUndercoverCount(undercoverCount - 1); }}
+                    disabled={undercoverCount <= 0}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       {/* Category */}
       <div className={styles.sectionTitle}>Catégorie</div>

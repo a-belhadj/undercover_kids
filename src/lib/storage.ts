@@ -13,9 +13,14 @@ const ROSTER_KEY = 'undercover-kids-roster';
 const GROUPS_KEY = 'undercover-kids-groups';
 const SELECTED_CATEGORIES_KEY = 'undercover-kids-selected-categories';
 const MRWHITE_CANNOT_START_KEY = 'undercover-kids-mrwhite-cannot-start';
+const INTRUS_COUNT_KEY = 'undercover-kids-intrus-count';
+const UNDERCOVER_ENABLED_KEY = 'undercover-kids-undercover-enabled';
+const MRWHITE_ENABLED_KEY = 'undercover-kids-mrwhite-enabled';
+const RANDOM_SPLIT_KEY = 'undercover-kids-random-split';
+const PAIR_DISPLAY_MODE_KEY = 'undercover-kids-pair-display-mode';
 const ANTI_CHEAT_KEY = 'undercover-kids-anti-cheat';
 
-import type { RosterPlayer, PlayerGroup } from '../types/game';
+import type { RosterPlayer, PlayerGroup, PairDisplayMode } from '../types/game';
 
 /** Load saved player profiles from localStorage */
 export function loadPlayerProfiles(): PlayerProfile[] {
@@ -209,6 +214,112 @@ export function loadMrWhiteCannotStart(): boolean {
 export function saveMrWhiteCannotStart(enabled: boolean): void {
   try {
     localStorage.setItem(MRWHITE_CANNOT_START_KEY, JSON.stringify(enabled));
+  } catch {
+    // localStorage may be unavailable
+  }
+}
+
+// ── Intrus config ────────────────────────────────────────────
+
+/** Load intrus count (default: 1) */
+export function loadIntrusCount(): number {
+  try {
+    const raw = localStorage.getItem(INTRUS_COUNT_KEY);
+    if (raw === null) return 1;
+    return JSON.parse(raw) as number;
+  } catch {
+    return 1;
+  }
+}
+
+/** Save intrus count */
+export function saveIntrusCount(count: number): void {
+  try {
+    localStorage.setItem(INTRUS_COUNT_KEY, JSON.stringify(count));
+  } catch {
+    // localStorage may be unavailable
+  }
+}
+
+/** Load undercover enabled (default: true) */
+export function loadUndercoverEnabled(): boolean {
+  try {
+    const raw = localStorage.getItem(UNDERCOVER_ENABLED_KEY);
+    if (raw === null) return true;
+    return JSON.parse(raw) as boolean;
+  } catch {
+    return true;
+  }
+}
+
+/** Save undercover enabled */
+export function saveUndercoverEnabled(enabled: boolean): void {
+  try {
+    localStorage.setItem(UNDERCOVER_ENABLED_KEY, JSON.stringify(enabled));
+  } catch {
+    // localStorage may be unavailable
+  }
+}
+
+/** Load Mr. White enabled (default: false) */
+export function loadMrWhiteEnabled(): boolean {
+  try {
+    const raw = localStorage.getItem(MRWHITE_ENABLED_KEY);
+    if (raw === null) return false;
+    return JSON.parse(raw) as boolean;
+  } catch {
+    return false;
+  }
+}
+
+/** Save Mr. White enabled */
+export function saveMrWhiteEnabled(enabled: boolean): void {
+  try {
+    localStorage.setItem(MRWHITE_ENABLED_KEY, JSON.stringify(enabled));
+  } catch {
+    // localStorage may be unavailable
+  }
+}
+
+/** Load random split (default: false) */
+export function loadRandomSplit(): boolean {
+  try {
+    const raw = localStorage.getItem(RANDOM_SPLIT_KEY);
+    if (raw === null) return false;
+    return JSON.parse(raw) as boolean;
+  } catch {
+    return false;
+  }
+}
+
+/** Save random split */
+export function saveRandomSplit(enabled: boolean): void {
+  try {
+    localStorage.setItem(RANDOM_SPLIT_KEY, JSON.stringify(enabled));
+  } catch {
+    // localStorage may be unavailable
+  }
+}
+
+// ── Pair display mode ────────────────────────────────────────
+
+/** Load pair display mode (default: 'both') */
+export function loadPairDisplayMode(): PairDisplayMode {
+  try {
+    const raw = localStorage.getItem(PAIR_DISPLAY_MODE_KEY);
+    if (raw === null) return 'both';
+    const val = JSON.parse(raw) as string;
+    if (val === 'icon' || val === 'text' || val === 'both') return val;
+    return 'both';
+  } catch {
+    return 'both';
+  }
+}
+
+/** Save pair display mode */
+export function savePairDisplayMode(mode: PairDisplayMode): void {
+  try {
+    localStorage.setItem(PAIR_DISPLAY_MODE_KEY, JSON.stringify(mode));
   } catch {
     // localStorage may be unavailable
   }

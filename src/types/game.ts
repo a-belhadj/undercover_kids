@@ -1,5 +1,7 @@
 export type Role = 'civil' | 'undercover' | 'mrwhite';
 
+export type PairDisplayMode = 'both' | 'icon' | 'text';
+
 export type GamePhase =
   | 'home'
   | 'setup'
@@ -33,9 +35,14 @@ export interface GameState {
   speakingOrder: number[];
   undercoverCount: number;
   mrWhiteCount: number;
+  intrusCount: number;
+  undercoverEnabled: boolean;
+  mrWhiteEnabled: boolean;
+  randomSplit: boolean;
   easyMode: boolean;
   selectedCategories: string[];
   mrWhiteCannotStart: boolean;
+  pairDisplayMode: PairDisplayMode;
 }
 
 export const AVATAR_EMOJIS = [

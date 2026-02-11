@@ -526,6 +526,53 @@
   padding: 0.5rem;
 }
 
+/* ── Gameplay separator ──────────────────────── */
+.gameplaySeparator {
+  width: 100%;
+  height: 1px;
+  background: var(--color-border);
+  margin: 0.25rem 0;
+}
+
+/* ── Gameplay section title ──────────────────── */
+.gameplaySectionTitle {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--color-text-light);
+  padding: 0.5rem 0.75rem 0.1rem;
+  margin-top: 0.25rem;
+}
+
+/* ── Display mode selector ───────────────────── */
+.displayModeOptions {
+  display: flex;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
+
+.displayModeBtn {
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg);
+  border: 2px solid var(--color-border);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+  cursor: pointer;
+  transition: all 150ms;
+}
+
+.displayModeBtn:active {
+  transform: scale(0.95);
+}
+
+.displayModeBtnActive {
+  composes: displayModeBtn;
+  border-color: var(--color-primary);
+  background: rgba(108, 92, 231, 0.08);
+  color: var(--color-primary);
+}
+
 /* ── Anti-cheat tab ──────────────────────────── */
 .antiCheatSection {
   padding: 0.75rem;

@@ -107,7 +107,7 @@ async function flashTorch(duration = 1500): Promise<() => void> {
 const ALARM_DURATION = 1500;
 
 export default function DiscussionScreen() {
-  const { players, speakingOrder, restartWithSamePlayers, goHome, antiCheat } = useGameStore();
+  const { players, speakingOrder, restartWithSamePlayers, goHome, antiCheat, pairDisplayMode } = useGameStore();
   const [showAll, setShowAll] = useState(false);
   const [revealedPlayers, setRevealedPlayers] = useState<Set<number>>(new Set());
   const [alarming, setAlarming] = useState(false);
@@ -230,8 +230,8 @@ export default function DiscussionScreen() {
                     <span className={styles.inlineMystery}>❓</span>
                   ) : (
                     <div className={styles.inlineEmoji}>
-                      <EmojiCard emoji={p.emoji!} />
-                      {p.emojiLabel && <span className={styles.inlineLabel}>{p.emojiLabel}</span>}
+                      {pairDisplayMode !== 'text' && <EmojiCard emoji={p.emoji!} />}
+                      {pairDisplayMode !== 'icon' && p.emojiLabel && <span className={styles.inlineLabel}>{p.emojiLabel}</span>}
                     </div>
                   )}
                   {/* Hide button for individual peek (not when showAll) */}

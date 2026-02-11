@@ -56,7 +56,17 @@
   color: var(--color-primary);
 }
 
-/* ── Toggle (easy mode) ─────────────────────── */
+/* ── Split sub-steppers (indented) ──────────── */
+.splitSection {
+  width: 100%;
+  max-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-left: 1rem;
+}
+
+/* ── Toggle ────────────────────────────────── */
 .toggleLabelWrap {
   display: flex;
   flex-direction: column;

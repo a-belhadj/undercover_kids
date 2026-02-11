@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import type { GameState, GamePhase } from '../types/game';
+import type { GameState, GamePhase, PairDisplayMode } from '../types/game';
 import { pickPair, createPlayers, buildSpeakingOrder } from '../logic/gameEngine';
-import { savePlayerProfiles, loadUndercoverCount, saveUndercoverCount, loadMrWhiteCount, saveMrWhiteCount, loadDisabledPairs, saveDisabledPairs, loadEasyMode, saveEasyMode, loadSelectedCategories, saveSelectedCategories, loadMrWhiteCannotStart, saveMrWhiteCannotStart, loadAntiCheat, saveAntiCheat } from '../lib/storage';
+import { savePlayerProfiles, loadUndercoverCount, saveUndercoverCount, loadMrWhiteCount, saveMrWhiteCount, loadDisabledPairs, saveDisabledPairs, loadEasyMode, saveEasyMode, loadSelectedCategories, saveSelectedCategories, loadMrWhiteCannotStart, saveMrWhiteCannotStart, loadAntiCheat, saveAntiCheat, loadIntrusCount, saveIntrusCount, loadUndercoverEnabled, saveUndercoverEnabled, loadMrWhiteEnabled, saveMrWhiteEnabled, loadRandomSplit, saveRandomSplit, loadPairDisplayMode, savePairDisplayMode } from '../lib/storage';
 import type { AntiCheatSettings } from '../lib/storage';
 
 interface GameActions {
@@ -12,8 +12,13 @@ interface GameActions {
   // Setup
   setUndercoverCount: (count: number) => void;
   setMrWhiteCount: (count: number) => void;
+  setIntrusCount: (count: number) => void;
+  setUndercoverEnabled: (enabled: boolean) => void;
+  setMrWhiteEnabled: (enabled: boolean) => void;
+  setRandomSplit: (enabled: boolean) => void;
   setEasyMode: (enabled: boolean) => void;
   setMrWhiteCannotStart: (enabled: boolean) => void;
+  setPairDisplayMode: (mode: PairDisplayMode) => void;
   setSelectedCategory: (category: string | null) => void;
   toggleCategory: (category: string) => void;
   startGame: (names: string[], avatarEmojis: string[], avatarColors: string[]) => void;
@@ -38,10 +43,34 @@ const initialState: GameState = {
   speakingOrder: [],
   undercoverCount: loadUndercoverCount(),
   mrWhiteCount: loadMrWhiteCount(),
+  intrusCount: loadIntrusCount(),
+  undercoverEnabled: loadUndercoverEnabled(),
+  mrWhiteEnabled: loadMrWhiteEnabled(),
+  randomSplit: loadRandomSplit(),
   easyMode: loadEasyMode(),
   selectedCategories: loadSelectedCategories(),
   mrWhiteCannotStart: loadMrWhiteCannotStart(),
+  pairDisplayMode: loadPairDisplayMode(),
 };
+
+/** Compute final UC/MW counts from the intrus config */
+function computeFinalCounts(state: GameState): { finalUC: number; finalMW: number } {
+  const { intrusCount, undercoverEnabled, mrWhiteEnabled, randomSplit, undercoverCount, mrWhiteCount } = state;
+  if (!undercoverEnabled) {
+    return { finalUC: 0, finalMW: intrusCount };
+  }
+  if (!mrWhiteEnabled) {
+    return { finalUC: intrusCount, finalMW: 0 };
+  }
+  // Both enabled
+  if (randomSplit) {
+    // Random split: each can be 0, sum = intrusCount
+    const finalMW = Math.floor(Math.random() * (intrusCount + 1));
+    return { finalUC: intrusCount - finalMW, finalMW };
+  }
+  // Manual split: use stored sub-counts
+  return { finalUC: undercoverCount, finalMW: mrWhiteCount };
+}
 
 export const useGameStore = create<GameState & GameActions>((set, get) => ({
   ...initialState,
@@ -63,9 +92,14 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     speakingOrder: [],
     undercoverCount: get().undercoverCount,
     mrWhiteCount: get().mrWhiteCount,
+    intrusCount: get().intrusCount,
+    undercoverEnabled: get().undercoverEnabled,
+    mrWhiteEnabled: get().mrWhiteEnabled,
+    randomSplit: get().randomSplit,
     easyMode: get().easyMode,
     selectedCategories: get().selectedCategories,
     mrWhiteCannotStart: get().mrWhiteCannotStart,
+    pairDisplayMode: get().pairDisplayMode,
   }),
 
   setUndercoverCount: (count) => {
@@ -78,6 +112,26 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     set({ mrWhiteCount: count });
   },
 
+  setIntrusCount: (count) => {
+    saveIntrusCount(count);
+    set({ intrusCount: count });
+  },
+
+  setUndercoverEnabled: (enabled) => {
+    saveUndercoverEnabled(enabled);
+    set({ undercoverEnabled: enabled });
+  },
+
+  setMrWhiteEnabled: (enabled) => {
+    saveMrWhiteEnabled(enabled);
+    set({ mrWhiteEnabled: enabled });
+  },
+
+  setRandomSplit: (enabled) => {
+    saveRandomSplit(enabled);
+    set({ randomSplit: enabled });
+  },
+
   setEasyMode: (enabled) => {
     saveEasyMode(enabled);
     set({ easyMode: enabled });
@@ -86,6 +140,11 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
   setMrWhiteCannotStart: (enabled) => {
     saveMrWhiteCannotStart(enabled);
     set({ mrWhiteCannotStart: enabled });
+  },
+
+  setPairDisplayMode: (mode) => {
+    savePairDisplayMode(mode);
+    set({ pairDisplayMode: mode });
   },
 
   setSelectedCategory: (category) => {
@@ -108,10 +167,12 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
   },
 
   startGame: (names, avatarEmojis, avatarColors) => {
-    const { undercoverCount, mrWhiteCount, selectedCategories, mrWhiteCannotStart } = get();
+    const state = get();
+    const { selectedCategories, mrWhiteCannotStart } = state;
+    const { finalUC, finalMW } = computeFinalCounts(state);
     const disabledPairs = loadDisabledPairs();
     const pair = pickPair(selectedCategories, disabledPairs);
-    const players = createPlayers(names, avatarEmojis, avatarColors, pair, undercoverCount, mrWhiteCount);
+    const players = createPlayers(names, avatarEmojis, avatarColors, pair, finalUC, finalMW);
     const speakingOrder = buildSpeakingOrder(players, mrWhiteCannotStart);
     // Persist player profiles so they survive app restarts
     savePlayerProfiles(
@@ -137,13 +198,15 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
   },
 
   restartWithSamePlayers: () => {
-    const { players, undercoverCount, mrWhiteCount, selectedCategories, mrWhiteCannotStart } = get();
+    const state = get();
+    const { players, selectedCategories, mrWhiteCannotStart } = state;
+    const { finalUC, finalMW } = computeFinalCounts(state);
     const names = players.map((p) => p.name);
     const emojis = players.map((p) => p.avatarEmoji);
     const colors = players.map((p) => p.avatarColor);
     const disabledPairs = loadDisabledPairs();
     const pair = pickPair(selectedCategories, disabledPairs);
-    const newPlayers = createPlayers(names, emojis, colors, pair, undercoverCount, mrWhiteCount);
+    const newPlayers = createPlayers(names, emojis, colors, pair, finalUC, finalMW);
     const speakingOrder = buildSpeakingOrder(newPlayers, mrWhiteCannotStart);
     // Keep profiles in sync for app restarts
     savePlayerProfiles(
@@ -159,7 +222,9 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
   },
 
   disableCurrentPairAndRestart: () => {
-    const { currentPair, players, undercoverCount, mrWhiteCount, selectedCategories, mrWhiteCannotStart } = get();
+    const state = get();
+    const { currentPair, players, selectedCategories, mrWhiteCannotStart } = state;
+    const { finalUC, finalMW } = computeFinalCounts(state);
     // Add current pair to disabled list
     if (currentPair) {
       const disabled = loadDisabledPairs();
@@ -174,7 +239,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     const colors = players.map((p) => p.avatarColor);
     const disabledPairs = loadDisabledPairs();
     const pair = pickPair(selectedCategories, disabledPairs);
-    const newPlayers = createPlayers(names, emojis, colors, pair, undercoverCount, mrWhiteCount);
+    const newPlayers = createPlayers(names, emojis, colors, pair, finalUC, finalMW);
     const speakingOrder = buildSpeakingOrder(newPlayers, mrWhiteCannotStart);
     set({
       phase: 'reveal',

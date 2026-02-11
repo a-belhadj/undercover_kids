@@ -7,7 +7,7 @@ import EmojiCard from '../ui/EmojiCard';
 import styles from './RevealScreen.module.css';
 
 export default function RevealScreen() {
-  const { players, currentPlayerIndex, nextReveal, easyMode, disableCurrentPairAndRestart } = useGameStore();
+  const { players, currentPlayerIndex, nextReveal, easyMode, pairDisplayMode, disableCurrentPairAndRestart } = useGameStore();
   const [revealed, setRevealed] = useState(false);
   const [confirmDisable, setConfirmDisable] = useState(false);
 
@@ -68,10 +68,12 @@ export default function RevealScreen() {
             </>
           ) : (
             <>
-              <div className={`${styles.emojiDisplay} emoji-reveal`}>
-                <EmojiCard emoji={player.emoji!} large />
-              </div>
-              {player.emojiLabel && (
+              {pairDisplayMode !== 'text' && (
+                <div className={`${styles.emojiDisplay} emoji-reveal`}>
+                  <EmojiCard emoji={player.emoji!} large />
+                </div>
+              )}
+              {pairDisplayMode !== 'icon' && player.emojiLabel && (
                 <div className={styles.emojiLabel}>{player.emojiLabel}</div>
               )}
               <span

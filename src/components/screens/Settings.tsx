@@ -12,10 +12,10 @@ interface SettingsProps {
 }
 
 export default function Settings({ onClose }: SettingsProps) {
-  const [activeTab, setActiveTab] = useState<'players' | 'groups' | 'pairs' | 'anticheat'>('players');
+  const [activeTab, setActiveTab] = useState<'players' | 'groups' | 'pairs' | 'gameplay'>('players');
   const [roster, setRoster] = useState<RosterPlayer[]>(() => loadRoster());
   const [groups, setGroups] = useState<PlayerGroup[]>(() => loadGroups());
-  const { antiCheat, setAntiCheat } = useGameStore();
+  const { antiCheat, setAntiCheat, easyMode, setEasyMode, mrWhiteCannotStart, setMrWhiteCannotStart, pairDisplayMode, setPairDisplayMode } = useGameStore();
 
   // Add player form state
   const [newName, setNewName] = useState('');
@@ -624,9 +624,70 @@ export default function Settings({ onClose }: SettingsProps) {
     setAntiCheat({ ...antiCheat, [key]: !antiCheat[key] });
   }
 
-  function renderAntiCheatTab() {
+  function renderGameplayTab() {
     return (
       <div className={styles.antiCheatSection}>
+        {/* Easy mode toggle */}
+        <button
+          className={styles.antiCheatItem}
+          onClick={() => setEasyMode(!easyMode)}
+        >
+          <span className={styles.antiCheatIcon}>🎓</span>
+          <div className={styles.antiCheatLabel}>
+            <span className={styles.antiCheatName}>Mode facile</span>
+            <span className={styles.antiCheatDesc}>Affiche le rôle (Civil 🟢 / Undercover 🥷) en plus de l'image</span>
+          </div>
+          <span className={easyMode ? styles.antiCheatSwitchOn : styles.antiCheatSwitch}>
+            <span className={styles.antiCheatSwitchKnob} />
+          </span>
+        </button>
+
+        {/* Mr. White cannot start toggle */}
+        <button
+          className={styles.antiCheatItem}
+          onClick={() => setMrWhiteCannotStart(!mrWhiteCannotStart)}
+        >
+          <span className={styles.antiCheatIcon}>🎩</span>
+          <div className={styles.antiCheatLabel}>
+            <span className={styles.antiCheatName}>Mr. White ne commence jamais</span>
+            <span className={styles.antiCheatDesc}>Mr. White ne sera jamais le premier à décrire son image</span>
+          </div>
+          <span className={mrWhiteCannotStart ? styles.antiCheatSwitchOn : styles.antiCheatSwitch}>
+            <span className={styles.antiCheatSwitchKnob} />
+          </span>
+        </button>
+
+        {/* Pair display mode */}
+        <div className={styles.antiCheatItem} style={{ cursor: 'default' }}>
+          <span className={styles.antiCheatIcon}>🖼️</span>
+          <div className={styles.antiCheatLabel}>
+            <span className={styles.antiCheatName}>Affichage des paires</span>
+            <div className={styles.displayModeOptions}>
+              <button
+                className={pairDisplayMode === 'both' ? styles.displayModeBtnActive : styles.displayModeBtn}
+                onClick={() => setPairDisplayMode('both')}
+              >
+                Icône + Texte
+              </button>
+              <button
+                className={pairDisplayMode === 'icon' ? styles.displayModeBtnActive : styles.displayModeBtn}
+                onClick={() => setPairDisplayMode('icon')}
+              >
+                Icône
+              </button>
+              <button
+                className={pairDisplayMode === 'text' ? styles.displayModeBtnActive : styles.displayModeBtn}
+                onClick={() => setPairDisplayMode('text')}
+              >
+                Texte
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Anti-triche section */}
+        <div className={styles.gameplaySectionTitle}>🛡️ Anti-triche</div>
+
         {/* 1. Allow peek */}
         <button
           className={styles.antiCheatItem}
@@ -724,11 +785,11 @@ export default function Settings({ onClose }: SettingsProps) {
             Paires
           </button>
           <button
-            className={activeTab === 'anticheat' ? styles.tabActive : styles.tab}
-            onClick={() => setActiveTab('anticheat')}
+            className={activeTab === 'gameplay' ? styles.tabActive : styles.tab}
+            onClick={() => setActiveTab('gameplay')}
           >
-            <span className={styles.tabIcon}>🛡️</span>
-            Anti-triche
+            <span className={styles.tabIcon}>🎮</span>
+            Gameplay
           </button>
         </div>
 
@@ -736,7 +797,7 @@ export default function Settings({ onClose }: SettingsProps) {
           {activeTab === 'players' && renderPlayersTab()}
           {activeTab === 'groups' && renderGroupsTab()}
           {activeTab === 'pairs' && <PairBrowser embedded />}
-          {activeTab === 'anticheat' && renderAntiCheatTab()}
+          {activeTab === 'gameplay' && renderGameplayTab()}
         </div>
       </div>
     </div>

@@ -10,6 +10,16 @@ vi.mock('../lib/storage', () => ({
   saveUndercoverCount: vi.fn(),
   loadMrWhiteCount: vi.fn(() => 0),
   saveMrWhiteCount: vi.fn(),
+  loadIntrusCount: vi.fn(() => 1),
+  saveIntrusCount: vi.fn(),
+  loadUndercoverEnabled: vi.fn(() => true),
+  saveUndercoverEnabled: vi.fn(),
+  loadMrWhiteEnabled: vi.fn(() => false),
+  saveMrWhiteEnabled: vi.fn(),
+  loadRandomSplit: vi.fn(() => false),
+  saveRandomSplit: vi.fn(),
+  loadPairDisplayMode: vi.fn(() => 'both'),
+  savePairDisplayMode: vi.fn(),
   loadDisabledPairs: vi.fn(() => []),
   saveDisabledPairs: vi.fn(),
   loadEasyMode: vi.fn(() => false),
@@ -30,9 +40,14 @@ const initialState = {
   speakingOrder: [],
   undercoverCount: 1,
   mrWhiteCount: 0,
+  intrusCount: 1,
+  undercoverEnabled: true,
+  mrWhiteEnabled: false,
+  randomSplit: false,
   easyMode: false,
   selectedCategories: [],
   mrWhiteCannotStart: true,
+  pairDisplayMode: 'both' as const,
 };
 
 const fakePair: EmojiPair = {
@@ -318,10 +333,10 @@ describe('gameStore', () => {
       expect(useGameStore.getState().currentPlayerIndex).toBe(0);
     });
 
-    it('passes undercoverCount, mrWhiteCount and selectedCategories to game engine', async () => {
+    it('passes computed counts and selectedCategories to game engine', async () => {
       const { pickPair, createPlayers } = await import('../logic/gameEngine');
 
-      useGameStore.setState({ undercoverCount: 2, mrWhiteCount: 1, selectedCategories: ['food'] });
+      useGameStore.setState({ undercoverCount: 2, mrWhiteCount: 1, intrusCount: 3, undercoverEnabled: true, mrWhiteEnabled: true, randomSplit: false, selectedCategories: ['food'] });
       useGameStore.getState().startGame(testNames, testEmojis, testColors);
 
       expect(pickPair).toHaveBeenCalledWith(['food'], []);
