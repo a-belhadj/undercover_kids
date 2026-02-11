@@ -103,6 +103,14 @@ export default function Settings({ onClose }: SettingsProps) {
     setEditingPlayerId(null);
   }
 
+  function swapRoster(a: number, b: number) {
+    setRoster((prev) => {
+      const next = [...prev];
+      [next[a], next[b]] = [next[b], next[a]];
+      return next;
+    });
+  }
+
   function addGroup() {
     if (!groupName.trim() || selectedPlayerIds.size < 3) return;
     const group: PlayerGroup = {
@@ -142,6 +150,17 @@ export default function Settings({ onClose }: SettingsProps) {
     setEditingGroupId(null);
   }
 
+  function swapGroupMember(groupId: string, a: number, b: number) {
+    setGroups((prev) =>
+      prev.map((g) => {
+        if (g.id !== groupId) return g;
+        const ids = [...g.playerIds];
+        [ids[a], ids[b]] = [ids[b], ids[a]];
+        return { ...g, playerIds: ids };
+      }),
+    );
+  }
+
   function renderPlayersTab() {
     return (
       <div className={styles.rosterSection}>
@@ -152,7 +171,7 @@ export default function Settings({ onClose }: SettingsProps) {
             Ajoute des joueurs pour créer des groupes !
           </div>
         )}
-        {roster.map((p) => (
+        {roster.map((p, rosterIdx) => (
           editingPlayerId === p.id ? (
             /* Inline edit form */
             <div key={p.id} className={styles.rosterRow} style={{ flexWrap: 'wrap' }}>
@@ -210,6 +229,10 @@ export default function Settings({ onClose }: SettingsProps) {
           ) : (
             /* Normal display row */
             <div key={p.id} className={styles.rosterRow}>
+              <div className={styles.reorderBtns}>
+                <button className={styles.reorderBtn} onClick={() => swapRoster(rosterIdx, rosterIdx - 1)} disabled={rosterIdx === 0} aria-label="Monter">▲</button>
+                <button className={styles.reorderBtn} onClick={() => swapRoster(rosterIdx, rosterIdx + 1)} disabled={rosterIdx === roster.length - 1} aria-label="Descendre">▼</button>
+              </div>
               <div className={styles.rosterAvatar}>
                 <PlayerAvatar emoji={p.avatarEmoji} color={p.avatarColor} size="small" />
               </div>
@@ -369,10 +392,14 @@ export default function Settings({ onClose }: SettingsProps) {
                 <button className={styles.groupDeleteBtn} onClick={() => deleteGroup(g.id)}>✕</button>
               </div>
               <div className={styles.groupPlayers}>
-                {members.map((m) => (
+                {members.map((m, mIdx) => (
                   <span key={m.id} className={styles.groupPlayerChip}>
                     <span className={styles.groupPlayerChipEmoji}><AvatarEmoji value={m.avatarEmoji} size={16} /></span>
                     {m.name}
+                    <span className={styles.chipReorderBtns}>
+                      <button className={styles.chipReorderBtn} onClick={() => swapGroupMember(g.id, mIdx, mIdx - 1)} disabled={mIdx === 0} aria-label="Monter">▲</button>
+                      <button className={styles.chipReorderBtn} onClick={() => swapGroupMember(g.id, mIdx, mIdx + 1)} disabled={mIdx === members.length - 1} aria-label="Descendre">▼</button>
+                    </span>
                   </span>
                 ))}
               </div>

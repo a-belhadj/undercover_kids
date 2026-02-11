@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { pickPair, createPlayers } from './gameEngine';
+import { pickPair, createPlayers, buildSpeakingOrder } from './gameEngine';
 import { emojiPairs } from '../data/emojiPairs';
-import type { EmojiPair } from '../types/game';
+import type { EmojiPair, Player } from '../types/game';
 
 describe('pickPair', () => {
   it('returns a valid EmojiPair with id, category, civil, and undercover', () => {
@@ -351,3 +351,102 @@ function countRoles(players: { role: string }[]) {
     mrwhite: players.filter((p) => p.role === 'mrwhite').length,
   };
 }
+
+describe('buildSpeakingOrder', () => {
+  const makePlayers = (roles: ('civil' | 'undercover' | 'mrwhite')[]): Player[] =>
+    roles.map((role, i) => ({
+      id: `p${i}`,
+      name: `Player${i}`,
+      role,
+      emoji: role === 'mrwhite' ? null : '🐶',
+      emojiLabel: role === 'mrwhite' ? null : 'Chien',
+      avatarEmoji: '🐶',
+      avatarColor: '#E17055',
+    }));
+
+  it('returns an array with the same length as players', () => {
+    const players = makePlayers(['civil', 'undercover', 'civil', 'civil']);
+    const order = buildSpeakingOrder(players, false);
+    expect(order).toHaveLength(players.length);
+  });
+
+  it('contains every player index exactly once', () => {
+    const players = makePlayers(['civil', 'undercover', 'civil', 'mrwhite', 'civil']);
+    const order = buildSpeakingOrder(players, false);
+    expect([...order].sort()).toEqual([0, 1, 2, 3, 4]);
+  });
+
+  it('produces different orderings across multiple calls (randomised)', () => {
+    const players = makePlayers(['civil', 'civil', 'civil', 'civil', 'civil', 'civil']);
+    const orderings = new Set<string>();
+    for (let i = 0; i < 50; i++) {
+      orderings.add(buildSpeakingOrder(players, false).join(','));
+    }
+    // With 6 players and 50 runs, we should see at least 2 different orderings
+    expect(orderings.size).toBeGreaterThanOrEqual(2);
+  });
+
+  describe('mrWhiteCannotStart = true', () => {
+    it('first player is never a Mr. White', () => {
+      // 2 Mr. Whites and 3 civils — run many times to ensure constraint holds
+      const players = makePlayers(['mrwhite', 'mrwhite', 'civil', 'civil', 'civil']);
+      for (let i = 0; i < 100; i++) {
+        const order = buildSpeakingOrder(players, true);
+        expect(players[order[0]].role).not.toBe('mrwhite');
+      }
+    });
+
+    it('works when only 1 Mr. White exists', () => {
+      const players = makePlayers(['mrwhite', 'civil', 'civil', 'civil']);
+      for (let i = 0; i < 50; i++) {
+        const order = buildSpeakingOrder(players, true);
+        expect(players[order[0]].role).not.toBe('mrwhite');
+      }
+    });
+
+    it('still contains all indices', () => {
+      const players = makePlayers(['mrwhite', 'civil', 'civil']);
+      const order = buildSpeakingOrder(players, true);
+      expect([...order].sort()).toEqual([0, 1, 2]);
+    });
+  });
+
+  describe('mrWhiteCannotStart = false', () => {
+    it('Mr. White can appear first (at least once in many runs)', () => {
+      // All players except one are Mr. White — very likely to appear first
+      const players = makePlayers(['mrwhite', 'mrwhite', 'mrwhite', 'civil']);
+      let mrWhiteFirst = false;
+      for (let i = 0; i < 100; i++) {
+        const order = buildSpeakingOrder(players, false);
+        if (players[order[0]].role === 'mrwhite') {
+          mrWhiteFirst = true;
+          break;
+        }
+      }
+      expect(mrWhiteFirst).toBe(true);
+    });
+  });
+
+  describe('edge cases', () => {
+    it('handles a single player', () => {
+      const players = makePlayers(['civil']);
+      const order = buildSpeakingOrder(players, true);
+      expect(order).toEqual([0]);
+    });
+
+    it('handles all Mr. White players gracefully (constraint cannot be satisfied)', () => {
+      const players = makePlayers(['mrwhite', 'mrwhite']);
+      // Should not crash — first will be mrwhite since there is no alternative
+      const order = buildSpeakingOrder(players, true);
+      expect(order).toHaveLength(2);
+      expect([...order].sort()).toEqual([0, 1]);
+    });
+
+    it('handles no Mr. White players with constraint enabled', () => {
+      const players = makePlayers(['civil', 'undercover', 'civil']);
+      const order = buildSpeakingOrder(players, true);
+      expect(order).toHaveLength(3);
+      expect([...order].sort()).toEqual([0, 1, 2]);
+    });
+  });
+});

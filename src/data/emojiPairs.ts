@@ -39,6 +39,10 @@ export const emojiPairs: EmojiPair[] = [
   { id: 'a18', category: 'animals', civil: '🦈', undercover: '🐳', civilLabel: 'Requin', undercoverLabel: 'Baleine' },
   { id: 'a19', category: 'animals', civil: '🐔', undercover: '🦃', civilLabel: 'Poule', undercoverLabel: 'Dinde' },
   { id: 'a20', category: 'animals', civil: '🐑', undercover: '🐐', civilLabel: 'Mouton', undercoverLabel: 'Chèvre' },
+  { id: 'a21', category: 'animals', civil: '🐬', undercover: '🦈', civilLabel: 'Dauphin', undercoverLabel: 'Requin' },
+  { id: 'a22', category: 'animals', civil: '🦫', undercover: '🐀', civilLabel: 'Castor', undercoverLabel: 'Rat' },
+  { id: 'a23', category: 'animals', civil: '🐀', undercover: '🐁', civilLabel: 'Rat', undercoverLabel: 'Souris' },
+  { id: 'a24', category: 'animals', civil: '🦫', undercover: '🦦', civilLabel: 'Castor', undercoverLabel: 'Loutre' },
 
   // ── Fruits & Légumes ─────────────────────────────────
   // Ressemblance : même couleur, même forme, ou même type
@@ -95,6 +99,7 @@ export const emojiPairs: EmojiPair[] = [
   { id: 'n14', category: 'food', civil: '🧇', undercover: '🥞', civilLabel: 'Gaufre', undercoverLabel: 'Pancakes' },
   { id: 'n15', category: 'food', civil: '🍙', undercover: '🍘', civilLabel: 'Onigiri', undercoverLabel: 'Galette de riz' },
   { id: 'n16', category: 'food', civil: '🌯', undercover: '🌮', civilLabel: 'Burrito', undercoverLabel: 'Taco' },
+  { id: 'n17', category: 'food', civil: '🥩', undercover: '🐟', civilLabel: 'Viande', undercoverLabel: 'Poisson' },
 
   // ── Nature ───────────────────────────────────────────
   // Opposés ou même famille naturelle
@@ -132,6 +137,7 @@ export const emojiPairs: EmojiPair[] = [
   { id: 'o14', category: 'objects', civil: '🪁', undercover: '🎈', civilLabel: 'Cerf-volant', undercoverLabel: 'Ballon' },
   { id: 'o15', category: 'objects', civil: '🔔', undercover: '📣', civilLabel: 'Cloche', undercoverLabel: 'Mégaphone' },
   { id: 'o16', category: 'objects', civil: '🏆', undercover: '🥇', civilLabel: 'Trophée', undercoverLabel: 'Médaille' },
+  { id: 'o17', category: 'objects', civil: '🔦', undercover: '🕯️', civilLabel: 'Lampe torche', undercoverLabel: 'Bougie' },
 
   // ── Super-Héros (Icons8 CDN) ─────────────────────────
   // Ressemblance : même univers ou même type de pouvoir

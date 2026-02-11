@@ -36,8 +36,8 @@ describe('CATEGORIES', () => {
 });
 
 describe('emojiPairs', () => {
-  it('has 183 pairs total', () => {
-    expect(emojiPairs).toHaveLength(183);
+  it('has 189 pairs total', () => {
+    expect(emojiPairs).toHaveLength(189);
   });
 
   it('each pair has id, category, civil, undercover, civilLabel, and undercoverLabel', () => {

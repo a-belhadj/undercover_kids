@@ -12,7 +12,7 @@ import styles from './SetupScreen.module.css';
 const MAX_PLAYERS = 16;
 
 export default function SetupScreen() {
-  const { setPhase, startGame, undercoverCount, setUndercoverCount, mrWhiteCount, setMrWhiteCount, easyMode, setEasyMode, selectedCategories, toggleCategory, setSelectedCategory } =
+  const { setPhase, startGame, undercoverCount, setUndercoverCount, mrWhiteCount, setMrWhiteCount, easyMode, setEasyMode, mrWhiteCannotStart, setMrWhiteCannotStart, selectedCategories, toggleCategory, setSelectedCategory } =
     useGameStore();
 
   // Load saved profiles on mount
@@ -171,10 +171,6 @@ export default function SetupScreen() {
   // Max special roles = floor(playerCount / 2) — civils always majority
   // Min: at least 1 of either undercover or mrWhite
   const maxSpecial = Math.floor(playerCount / 2);
-  const maxUndercover = maxSpecial - mrWhiteCount;
-  const maxMrWhite = maxSpecial - undercoverCount;
-  const minUndercover = mrWhiteCount >= 1 ? 0 : 1;
-  const minMrWhite = 0; // mrWhite can always be 0
 
   // Save profiles to localStorage whenever names/avatars/colors change
   useEffect(() => {
@@ -201,6 +197,12 @@ export default function SetupScreen() {
     const next = [...playerColors];
     next[editingAvatar] = color;
     setPlayerColors(next);
+  };
+
+  const swapPlayers = (a: number, b: number) => {
+    setNames((prev) => { const n = [...prev]; [n[a], n[b]] = [n[b], n[a]]; return n; });
+    setPlayerAvatars((prev) => { const n = [...prev]; [n[a], n[b]] = [n[b], n[a]]; return n; });
+    setPlayerColors((prev) => { const n = [...prev]; [n[a], n[b]] = [n[b], n[a]]; return n; });
   };
 
   const handleStart = () => {
@@ -258,6 +260,26 @@ export default function SetupScreen() {
       <form className={styles.playerList} onSubmit={(e) => e.preventDefault()}>
         {Array.from({ length: playerCount }, (_, i) => (
           <div key={i} className={styles.nameInput}>
+            <div className={styles.reorderBtns}>
+              <button
+                type="button"
+                className={styles.reorderBtn}
+                onClick={() => swapPlayers(i, i - 1)}
+                disabled={i === 0}
+                aria-label="Monter"
+              >
+                ▲
+              </button>
+              <button
+                type="button"
+                className={styles.reorderBtn}
+                onClick={() => swapPlayers(i, i + 1)}
+                disabled={i === playerCount - 1}
+                aria-label="Descendre"
+              >
+                ▼
+              </button>
+            </div>
             <button
               type="button"
               className={styles.avatarBtn}
@@ -295,15 +317,22 @@ export default function SetupScreen() {
           <button
             className={styles.stepperBtn}
             onClick={() => setUndercoverCount(undercoverCount - 1)}
-            disabled={undercoverCount <= minUndercover}
+            disabled={undercoverCount <= 0 || undercoverCount + mrWhiteCount <= 1}
           >
             -
           </button>
           <span className={styles.stepperValue}>{undercoverCount}</span>
           <button
             className={styles.stepperBtn}
-            onClick={() => setUndercoverCount(undercoverCount + 1)}
-            disabled={undercoverCount >= maxUndercover}
+            onClick={() => {
+              if (undercoverCount + mrWhiteCount < maxSpecial) {
+                setUndercoverCount(undercoverCount + 1);
+              } else if (mrWhiteCount > 0) {
+                setUndercoverCount(undercoverCount + 1);
+                setMrWhiteCount(mrWhiteCount - 1);
+              }
+            }}
+            disabled={undercoverCount >= maxSpecial && mrWhiteCount <= 0}
           >
             +
           </button>
@@ -317,20 +346,48 @@ export default function SetupScreen() {
           <button
             className={styles.stepperBtn}
             onClick={() => setMrWhiteCount(mrWhiteCount - 1)}
-            disabled={mrWhiteCount <= minMrWhite || (mrWhiteCount <= 1 && undercoverCount === 0)}
+            disabled={mrWhiteCount <= 0 || undercoverCount + mrWhiteCount <= 1}
           >
             -
           </button>
           <span className={styles.stepperValue}>{mrWhiteCount}</span>
           <button
             className={styles.stepperBtn}
-            onClick={() => setMrWhiteCount(mrWhiteCount + 1)}
-            disabled={mrWhiteCount >= maxMrWhite}
+            onClick={() => {
+              if (undercoverCount + mrWhiteCount < maxSpecial) {
+                setMrWhiteCount(mrWhiteCount + 1);
+              } else if (undercoverCount > 0) {
+                setMrWhiteCount(mrWhiteCount + 1);
+                setUndercoverCount(undercoverCount - 1);
+              }
+            }}
+            disabled={mrWhiteCount >= maxSpecial && undercoverCount <= 0}
           >
             +
           </button>
         </div>
       </div>
+
+      {/* Mr. White cannot start toggle (only visible when mrWhiteCount >= 1) */}
+      {mrWhiteCount >= 1 && (
+        <button
+          className={styles.toggle}
+          onClick={() => setMrWhiteCannotStart(!mrWhiteCannotStart)}
+          aria-label={mrWhiteCannotStart ? 'Autoriser Mr. White à commencer' : 'Empêcher Mr. White de commencer'}
+        >
+          <div className={styles.toggleLabelWrap}>
+            <span className={styles.toggleLabel}>
+              <span>🎩</span> Mr. White ne commence pas
+            </span>
+            <span className={styles.toggleSub}>
+              Mr. White ne sera jamais le premier à décrire son image
+            </span>
+          </div>
+          <span className={mrWhiteCannotStart ? styles.switchOn : styles.switch}>
+            <span className={styles.switchKnob} />
+          </span>
+        </button>
+      )}
 
       {/* Easy mode toggle */}
       <button

@@ -357,6 +357,42 @@
   cursor: pointer;
 }
 
+/* ── Reorder buttons ────────────────────────── */
+.reorderBtns {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.reorderBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  font-size: 0.75rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-light);
+  cursor: pointer;
+  padding: 0;
+  transition: all 150ms;
+}
+
+.reorderBtn:active:not(:disabled) {
+  transform: scale(0.9);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.reorderBtn:disabled {
+  opacity: 0.2;
+  cursor: default;
+}
+
 /* ── Load Group button ──────────────────────── */
 .loadGroupBtn {
   margin-left: auto;

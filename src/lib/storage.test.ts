@@ -11,6 +11,8 @@ import {
   saveDisabledPairs,
   loadEasyMode,
   saveEasyMode,
+  loadMrWhiteCannotStart,
+  saveMrWhiteCannotStart,
   loadRoster,
   saveRoster,
   loadGroups,
@@ -233,6 +235,45 @@ describe('saveEasyMode', () => {
     saveEasyMode(true);
     saveEasyMode(false);
     expect(localStorage.getItem(EASY_MODE_KEY)).toBe('false');
+  });
+});
+
+// ── Roster ──────────────────────────────────────────────────
+
+const MRWHITE_CANNOT_START_KEY = 'undercover-kids-mrwhite-cannot-start';
+
+describe('loadMrWhiteCannotStart', () => {
+  it('returns true when nothing saved (default)', () => {
+    expect(loadMrWhiteCannotStart()).toBe(true);
+  });
+
+  it('returns saved value after saveMrWhiteCannotStart(false)', () => {
+    saveMrWhiteCannotStart(false);
+    expect(loadMrWhiteCannotStart()).toBe(false);
+  });
+
+  it('returns saved value after saveMrWhiteCannotStart(true)', () => {
+    saveMrWhiteCannotStart(false);
+    saveMrWhiteCannotStart(true);
+    expect(loadMrWhiteCannotStart()).toBe(true);
+  });
+
+  it('returns true if localStorage contains invalid JSON', () => {
+    localStorage.setItem(MRWHITE_CANNOT_START_KEY, '{not valid}');
+    expect(loadMrWhiteCannotStart()).toBe(true);
+  });
+});
+
+describe('saveMrWhiteCannotStart', () => {
+  it('persists to localStorage', () => {
+    saveMrWhiteCannotStart(false);
+    expect(localStorage.getItem(MRWHITE_CANNOT_START_KEY)).toBe('false');
+  });
+
+  it('overwrites previous value', () => {
+    saveMrWhiteCannotStart(false);
+    saveMrWhiteCannotStart(true);
+    expect(localStorage.getItem(MRWHITE_CANNOT_START_KEY)).toBe('true');
   });
 });
 

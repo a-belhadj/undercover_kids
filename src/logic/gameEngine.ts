@@ -44,3 +44,42 @@ export function createPlayers(
     avatarColor: avatarColors[i],
   }));
 }
+
+/**
+ * Fisher-Yates shuffle (in-place).
+ * Returns the same array reference, mutated.
+ */
+function shuffle<T>(arr: T[]): T[] {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+/**
+ * Build a randomised speaking order for the discussion phase.
+ *
+ * @param players      The full player list
+ * @param mrWhiteCannotStart  If true, ensures the first speaker is never a Mr. White
+ * @returns A new array of player indices in speaking order
+ */
+export function buildSpeakingOrder(
+  players: Player[],
+  mrWhiteCannotStart: boolean,
+): number[] {
+  const indices = players.map((_, i) => i);
+  shuffle(indices);
+
+  if (mrWhiteCannotStart && indices.length > 1) {
+    // If the first index points to a Mr. White, swap it with the first non-Mr. White
+    if (players[indices[0]].role === 'mrwhite') {
+      const swapIdx = indices.findIndex((idx) => players[idx].role !== 'mrwhite');
+      if (swapIdx !== -1) {
+        [indices[0], indices[swapIdx]] = [indices[swapIdx], indices[0]];
+      }
+    }
+  }
+
+  return indices;
+}

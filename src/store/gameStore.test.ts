@@ -14,6 +14,10 @@ vi.mock('../lib/storage', () => ({
   saveDisabledPairs: vi.fn(),
   loadEasyMode: vi.fn(() => false),
   saveEasyMode: vi.fn(),
+  loadSelectedCategories: vi.fn(() => []),
+  saveSelectedCategories: vi.fn(),
+  loadMrWhiteCannotStart: vi.fn(() => true),
+  saveMrWhiteCannotStart: vi.fn(),
   loadAntiCheat: vi.fn(() => ({ allowPeek: true, peekAlarm: true, allowShowAll: true, showAllAlarm: true })),
   saveAntiCheat: vi.fn(),
 }));
@@ -23,10 +27,12 @@ const initialState = {
   players: [],
   currentPair: null,
   currentPlayerIndex: 0,
+  speakingOrder: [],
   undercoverCount: 1,
   mrWhiteCount: 0,
   easyMode: false,
   selectedCategories: [],
+  mrWhiteCannotStart: true,
 };
 
 const fakePair: EmojiPair = {
@@ -72,6 +78,9 @@ vi.mock('../logic/gameEngine', () => ({
         avatarColor: avatarColors[i],
       })),
   ),
+  buildSpeakingOrder: vi.fn(
+    (players: { id: string }[]) => players.map((_, i) => i),
+  ),
 }));
 
 const testNames = ['Alice', 'Bob', 'Charlie'];
@@ -96,6 +105,7 @@ describe('gameStore', () => {
       expect(state.mrWhiteCount).toBe(0);
       expect(state.easyMode).toBe(false);
       expect(state.selectedCategories).toEqual([]);
+      expect(state.mrWhiteCannotStart).toBe(true);
     });
   });
 
@@ -115,7 +125,7 @@ describe('gameStore', () => {
   });
 
   describe('goHome', () => {
-    it('resets everything to initial state but preserves undercoverCount, mrWhiteCount and easyMode', () => {
+    it('resets everything to initial state but preserves undercoverCount, mrWhiteCount, easyMode, selectedCategories and mrWhiteCannotStart', () => {
       // Mutate state first
       useGameStore.setState({
         phase: 'discussion',
@@ -128,6 +138,7 @@ describe('gameStore', () => {
         mrWhiteCount: 1,
         easyMode: true,
         selectedCategories: ['animals'],
+        mrWhiteCannotStart: false,
       });
 
       useGameStore.getState().goHome();
@@ -140,7 +151,8 @@ describe('gameStore', () => {
       expect(state.undercoverCount).toBe(2);
       expect(state.mrWhiteCount).toBe(1);
       expect(state.easyMode).toBe(true);
-      expect(state.selectedCategories).toEqual([]);
+      expect(state.selectedCategories).toEqual(['animals']);
+      expect(state.mrWhiteCannotStart).toBe(false);
     });
   });
 
@@ -200,6 +212,25 @@ describe('gameStore', () => {
     });
   });
 
+  describe('setMrWhiteCannotStart', () => {
+    it('sets mrWhiteCannotStart to false', () => {
+      useGameStore.getState().setMrWhiteCannotStart(false);
+      expect(useGameStore.getState().mrWhiteCannotStart).toBe(false);
+    });
+
+    it('sets mrWhiteCannotStart to true', () => {
+      useGameStore.getState().setMrWhiteCannotStart(false);
+      useGameStore.getState().setMrWhiteCannotStart(true);
+      expect(useGameStore.getState().mrWhiteCannotStart).toBe(true);
+    });
+
+    it('persists to storage', async () => {
+      const { saveMrWhiteCannotStart } = await import('../lib/storage');
+      useGameStore.getState().setMrWhiteCannotStart(false);
+      expect(saveMrWhiteCannotStart).toHaveBeenCalledWith(false);
+    });
+  });
+
   describe('setSelectedCategory', () => {
     it('sets a single category', () => {
       useGameStore.getState().setSelectedCategory('animals');
@@ -210,6 +241,18 @@ describe('gameStore', () => {
       useGameStore.getState().setSelectedCategory('animals');
       useGameStore.getState().setSelectedCategory(null);
       expect(useGameStore.getState().selectedCategories).toEqual([]);
+    });
+
+    it('persists to storage', async () => {
+      const { saveSelectedCategories } = await import('../lib/storage');
+      useGameStore.getState().setSelectedCategory('animals');
+      expect(saveSelectedCategories).toHaveBeenCalledWith(['animals']);
+    });
+
+    it('persists empty array when set to null', async () => {
+      const { saveSelectedCategories } = await import('../lib/storage');
+      useGameStore.getState().setSelectedCategory(null);
+      expect(saveSelectedCategories).toHaveBeenCalledWith([]);
     });
   });
 
@@ -236,6 +279,20 @@ describe('gameStore', () => {
       useGameStore.getState().toggleCategory('food');
       useGameStore.getState().toggleCategory('animals');
       expect(useGameStore.getState().selectedCategories).toEqual(['food']);
+    });
+
+    it('persists to storage when adding', async () => {
+      const { saveSelectedCategories } = await import('../lib/storage');
+      useGameStore.getState().toggleCategory('animals');
+      expect(saveSelectedCategories).toHaveBeenCalledWith(['animals']);
+    });
+
+    it('persists to storage when removing', async () => {
+      const { saveSelectedCategories } = await import('../lib/storage');
+      useGameStore.getState().toggleCategory('animals');
+      vi.mocked(saveSelectedCategories).mockClear();
+      useGameStore.getState().toggleCategory('animals');
+      expect(saveSelectedCategories).toHaveBeenCalledWith([]);
     });
   });
 

@@ -7,8 +7,9 @@ import EmojiCard from '../ui/EmojiCard';
 import styles from './RevealScreen.module.css';
 
 export default function RevealScreen() {
-  const { players, currentPlayerIndex, nextReveal, easyMode } = useGameStore();
+  const { players, currentPlayerIndex, nextReveal, easyMode, disableCurrentPairAndRestart } = useGameStore();
   const [revealed, setRevealed] = useState(false);
+  const [confirmDisable, setConfirmDisable] = useState(false);
 
   const player = players[currentPlayerIndex];
 
@@ -20,7 +21,16 @@ export default function RevealScreen() {
   const handleReveal = () => setRevealed(true);
   const handleNext = () => {
     setRevealed(false);
+    setConfirmDisable(false);
     nextReveal();
+  };
+
+  const handleDisable = () => {
+    if (!confirmDisable) {
+      setConfirmDisable(true);
+      return;
+    }
+    disableCurrentPairAndRestart();
   };
 
   return (
@@ -82,6 +92,16 @@ export default function RevealScreen() {
           <Button variant="success" size="large" icon="✅" onClick={handleNext}>
             J'ai vu !
           </Button>
+          {player.role !== 'mrwhite' && (
+            <Button
+              variant={confirmDisable ? 'danger' : 'secondary'}
+              icon={confirmDisable ? '⚠️' : '🚫'}
+              onClick={handleDisable}
+              style={{ marginTop: '0.5rem', opacity: confirmDisable ? 1 : 0.7 }}
+            >
+              {confirmDisable ? 'Confirmer ? La paire sera désactivée' : 'Trop difficile, changer'}
+            </Button>
+          )}
         </>
       )}
     </GameLayout>

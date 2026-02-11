@@ -68,9 +68,9 @@ describe('decodePairConfig', () => {
 });
 
 describe('encode/decode symmetry', () => {
-  it('code length is exactly 46 hex chars for 183 pairs', () => {
+  it('code length is exactly 48 hex chars for 189 pairs', () => {
     const code = encodePairConfig(new Set());
-    expect(code.length).toBe(46);
+    expect(code.length).toBe(48);
   });
 
   it('preserves exact disabled set through round-trip', () => {

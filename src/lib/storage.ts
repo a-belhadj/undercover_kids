@@ -11,6 +11,8 @@ const DISABLED_PAIRS_KEY = 'undercover-kids-disabled-pairs';
 const EASY_MODE_KEY = 'undercover-kids-easy-mode';
 const ROSTER_KEY = 'undercover-kids-roster';
 const GROUPS_KEY = 'undercover-kids-groups';
+const SELECTED_CATEGORIES_KEY = 'undercover-kids-selected-categories';
+const MRWHITE_CANNOT_START_KEY = 'undercover-kids-mrwhite-cannot-start';
 const ANTI_CHEAT_KEY = 'undercover-kids-anti-cheat';
 
 import type { RosterPlayer, PlayerGroup } from '../types/game';
@@ -163,6 +165,50 @@ export function loadGroups(): PlayerGroup[] {
 export function saveGroups(groups: PlayerGroup[]): void {
   try {
     localStorage.setItem(GROUPS_KEY, JSON.stringify(groups));
+  } catch {
+    // localStorage may be unavailable
+  }
+}
+
+// ── Selected categories ──────────────────────────────────────
+
+/** Load selected categories (default: [] = all/random) */
+export function loadSelectedCategories(): string[] {
+  try {
+    const raw = localStorage.getItem(SELECTED_CATEGORIES_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) as string[];
+  } catch {
+    return [];
+  }
+}
+
+/** Save selected categories */
+export function saveSelectedCategories(categories: string[]): void {
+  try {
+    localStorage.setItem(SELECTED_CATEGORIES_KEY, JSON.stringify(categories));
+  } catch {
+    // localStorage may be unavailable
+  }
+}
+
+// ── Mr. White cannot start setting ───────────────────────────
+
+/** Load "Mr. White cannot start" setting (default: true) */
+export function loadMrWhiteCannotStart(): boolean {
+  try {
+    const raw = localStorage.getItem(MRWHITE_CANNOT_START_KEY);
+    if (raw === null) return true;
+    return JSON.parse(raw) as boolean;
+  } catch {
+    return true;
+  }
+}
+
+/** Save "Mr. White cannot start" setting */
+export function saveMrWhiteCannotStart(enabled: boolean): void {
+  try {
+    localStorage.setItem(MRWHITE_CANNOT_START_KEY, JSON.stringify(enabled));
   } catch {
     // localStorage may be unavailable
   }

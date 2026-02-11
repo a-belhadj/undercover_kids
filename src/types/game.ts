@@ -30,10 +30,12 @@ export interface GameState {
   players: Player[];
   currentPair: EmojiPair | null;
   currentPlayerIndex: number;
+  speakingOrder: number[];
   undercoverCount: number;
   mrWhiteCount: number;
   easyMode: boolean;
   selectedCategories: string[];
+  mrWhiteCannotStart: boolean;
 }
 
 export const AVATAR_EMOJIS = [
