@@ -1,4 +1,4 @@
-import type { EmojiPair, Player } from '../types/game';
+import type { EmojiPair, Player, Winner } from '../types/game';
 import { emojiPairs } from '../data/emojiPairs';
 import { assignRoles } from './roles';
 
@@ -42,6 +42,7 @@ export function createPlayers(
     emojiLabel: roles[i] === 'mrwhite' ? null : roles[i] === 'undercover' ? pair.undercoverLabel : pair.civilLabel,
     avatarEmoji: avatarEmojis[i],
     avatarColor: avatarColors[i],
+    eliminated: false,
   }));
 }
 
@@ -82,4 +83,22 @@ export function buildSpeakingOrder(
   }
 
   return indices;
+}
+
+/**
+ * Check if the game is over after an elimination.
+ *
+ * - Civils win when all undercovers AND all Mr. Whites are eliminated.
+ * - Intrus win when all civils are eliminated.
+ *
+ * @returns The winning side, or null if the game continues.
+ */
+export function checkGameOver(players: Player[]): Winner | null {
+  const alive = players.filter((p) => !p.eliminated);
+  const aliveIntrus = alive.some((p) => p.role === 'undercover' || p.role === 'mrwhite');
+  const aliveCivils = alive.some((p) => p.role === 'civil');
+
+  if (!aliveIntrus) return 'civil';
+  if (!aliveCivils) return 'intrus';
+  return null;
 }

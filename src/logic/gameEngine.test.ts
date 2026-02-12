@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { pickPair, createPlayers, buildSpeakingOrder } from './gameEngine';
+import { pickPair, createPlayers, buildSpeakingOrder, checkGameOver } from './gameEngine';
 import { emojiPairs } from '../data/emojiPairs';
 import type { EmojiPair, Player } from '../types/game';
 
@@ -362,6 +362,7 @@ describe('buildSpeakingOrder', () => {
       emojiLabel: role === 'mrwhite' ? null : 'Chien',
       avatarEmoji: '🐶',
       avatarColor: '#E17055',
+      eliminated: false,
     }));
 
   it('returns an array with the same length as players', () => {
@@ -448,5 +449,83 @@ describe('buildSpeakingOrder', () => {
       expect(order).toHaveLength(3);
       expect([...order].sort()).toEqual([0, 1, 2]);
     });
+  });
+});
+
+describe('checkGameOver', () => {
+  const makePlayersWithElim = (configs: { role: 'civil' | 'undercover' | 'mrwhite'; eliminated: boolean }[]): Player[] =>
+    configs.map((c, i) => ({
+      id: `p${i}`,
+      name: `Player${i}`,
+      role: c.role,
+      emoji: c.role === 'mrwhite' ? null : '🐶',
+      emojiLabel: c.role === 'mrwhite' ? null : 'Chien',
+      avatarEmoji: '🐶',
+      avatarColor: '#E17055',
+      eliminated: c.eliminated,
+    }));
+
+  it('returns null when game is still in progress', () => {
+    const players = makePlayersWithElim([
+      { role: 'civil', eliminated: false },
+      { role: 'undercover', eliminated: false },
+      { role: 'civil', eliminated: false },
+    ]);
+    expect(checkGameOver(players)).toBeNull();
+  });
+
+  it('returns "civil" when all undercovers are eliminated', () => {
+    const players = makePlayersWithElim([
+      { role: 'civil', eliminated: false },
+      { role: 'undercover', eliminated: true },
+      { role: 'civil', eliminated: false },
+    ]);
+    expect(checkGameOver(players)).toBe('civil');
+  });
+
+  it('returns "civil" when all undercovers and mr whites are eliminated', () => {
+    const players = makePlayersWithElim([
+      { role: 'civil', eliminated: false },
+      { role: 'undercover', eliminated: true },
+      { role: 'mrwhite', eliminated: true },
+      { role: 'civil', eliminated: false },
+    ]);
+    expect(checkGameOver(players)).toBe('civil');
+  });
+
+  it('returns "intrus" when all civils are eliminated', () => {
+    const players = makePlayersWithElim([
+      { role: 'civil', eliminated: true },
+      { role: 'undercover', eliminated: false },
+      { role: 'civil', eliminated: true },
+    ]);
+    expect(checkGameOver(players)).toBe('intrus');
+  });
+
+  it('returns null when some civils and some intrus remain', () => {
+    const players = makePlayersWithElim([
+      { role: 'civil', eliminated: true },
+      { role: 'undercover', eliminated: false },
+      { role: 'civil', eliminated: false },
+      { role: 'mrwhite', eliminated: true },
+    ]);
+    expect(checkGameOver(players)).toBeNull();
+  });
+
+  it('returns null when only mr white is eliminated but undercover remains', () => {
+    const players = makePlayersWithElim([
+      { role: 'civil', eliminated: false },
+      { role: 'undercover', eliminated: false },
+      { role: 'mrwhite', eliminated: true },
+    ]);
+    expect(checkGameOver(players)).toBeNull();
+  });
+
+  it('returns "civil" when only undercover exists and is eliminated', () => {
+    const players = makePlayersWithElim([
+      { role: 'civil', eliminated: false },
+      { role: 'undercover', eliminated: true },
+    ]);
+    expect(checkGameOver(players)).toBe('civil');
   });
 });

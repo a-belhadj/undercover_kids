@@ -38,6 +38,7 @@ const initialState = {
   currentPair: null,
   currentPlayerIndex: 0,
   speakingOrder: [],
+  winner: null,
   undercoverCount: 1,
   mrWhiteCount: 0,
   intrusCount: 1,
@@ -70,33 +71,37 @@ const fakePair2: EmojiPair = {
 
 let pickPairCallCount = 0;
 
-vi.mock('../logic/gameEngine', () => ({
-  pickPair: vi.fn(() => {
-    pickPairCallCount++;
-    // Alternate between pairs so tests can detect a new pair was picked.
-    return pickPairCallCount % 2 === 1 ? fakePair : fakePair2;
-  }),
-  createPlayers: vi.fn(
-    (
-      names: string[],
-      avatarEmojis: string[],
-      avatarColors: string[],
-      pair: EmojiPair,
-    ) =>
-      names.map((name, i) => ({
-        id: `player-${i}`,
-        name,
-        role: i === 0 ? 'undercover' : 'civil',
-        emoji: i === 0 ? pair.undercover : pair.civil,
-        emojiLabel: i === 0 ? pair.undercoverLabel : pair.civilLabel,
-        avatarEmoji: avatarEmojis[i],
-        avatarColor: avatarColors[i],
-      })),
-  ),
-  buildSpeakingOrder: vi.fn(
-    (players: { id: string }[]) => players.map((_, i) => i),
-  ),
-}));
+vi.mock('../logic/gameEngine', async () => {
+  const actual = await vi.importActual('../logic/gameEngine');
+  return {
+    ...actual,
+    pickPair: vi.fn(() => {
+      pickPairCallCount++;
+      return pickPairCallCount % 2 === 1 ? fakePair : fakePair2;
+    }),
+    createPlayers: vi.fn(
+      (
+        names: string[],
+        avatarEmojis: string[],
+        avatarColors: string[],
+        pair: EmojiPair,
+      ) =>
+        names.map((name, i) => ({
+          id: `player-${i}`,
+          name,
+          role: i === 0 ? 'undercover' : 'civil',
+          emoji: i === 0 ? pair.undercover : pair.civil,
+          emojiLabel: i === 0 ? pair.undercoverLabel : pair.civilLabel,
+          avatarEmoji: avatarEmojis[i],
+          avatarColor: avatarColors[i],
+          eliminated: false,
+        })),
+    ),
+    buildSpeakingOrder: vi.fn(
+      (players: { id: string }[]) => players.map((_, i) => i),
+    ),
+  };
+});
 
 const testNames = ['Alice', 'Bob', 'Charlie'];
 const testEmojis = ['🐶', '🐱', '🐸'];
@@ -145,7 +150,7 @@ describe('gameStore', () => {
       useGameStore.setState({
         phase: 'discussion',
         players: [
-          { id: '1', name: 'X', role: 'civil', emoji: '🐶', emojiLabel: 'Chien', avatarEmoji: '🐶', avatarColor: '#E17055' },
+          { id: '1', name: 'X', role: 'civil', emoji: '🐶', emojiLabel: 'Chien', avatarEmoji: '🐶', avatarColor: '#E17055', eliminated: false },
         ],
         currentPair: fakePair,
         currentPlayerIndex: 3,
@@ -494,7 +499,7 @@ describe('gameStore', () => {
       useGameStore.getState().setAntiCheat(customSettings);
 
       useGameStore.setState({ phase: 'discussion', players: [
-        { id: '1', name: 'X', role: 'civil', emoji: '🐶', emojiLabel: 'Chien', avatarEmoji: '🐶', avatarColor: '#E17055' },
+        { id: '1', name: 'X', role: 'civil', emoji: '🐶', emojiLabel: 'Chien', avatarEmoji: '🐶', avatarColor: '#E17055', eliminated: false },
       ] });
       useGameStore.getState().goHome();
 
@@ -526,6 +531,64 @@ describe('gameStore', () => {
       useGameStore.getState().restartWithSamePlayers();
 
       expect(useGameStore.getState().antiCheat).toEqual(customSettings);
+    });
+  });
+
+  describe('eliminatePlayer', () => {
+    beforeEach(() => {
+      useGameStore.getState().startGame(testNames, testEmojis, testColors);
+      // Advance to discussion phase
+      useGameStore.setState({ phase: 'discussion' });
+    });
+
+    it('marks a player as eliminated', () => {
+      useGameStore.getState().eliminatePlayer(1);
+      expect(useGameStore.getState().players[1].eliminated).toBe(true);
+    });
+
+    it('does not affect other players', () => {
+      useGameStore.getState().eliminatePlayer(1);
+      expect(useGameStore.getState().players[0].eliminated).toBe(false);
+      expect(useGameStore.getState().players[2].eliminated).toBe(false);
+    });
+
+    it('transitions to result phase when all intrus are eliminated (civils win)', () => {
+      // Player 0 is undercover (from mock), players 1 & 2 are civil
+      useGameStore.getState().eliminatePlayer(0);
+      const state = useGameStore.getState();
+      expect(state.phase).toBe('result');
+      expect(state.winner).toBe('civil');
+    });
+
+    it('transitions to result phase when all civils are eliminated (intrus win)', () => {
+      // Players 1 & 2 are civil
+      useGameStore.getState().eliminatePlayer(1);
+      expect(useGameStore.getState().phase).toBe('discussion');
+      useGameStore.getState().eliminatePlayer(2);
+      const state = useGameStore.getState();
+      expect(state.phase).toBe('result');
+      expect(state.winner).toBe('intrus');
+    });
+
+    it('stays in discussion when game is not over', () => {
+      useGameStore.getState().eliminatePlayer(1);
+      const state = useGameStore.getState();
+      expect(state.phase).toBe('discussion');
+      expect(state.winner).toBeNull();
+    });
+
+    it('winner is reset after restartWithSamePlayers', () => {
+      useGameStore.getState().eliminatePlayer(0);
+      expect(useGameStore.getState().winner).toBe('civil');
+      useGameStore.getState().restartWithSamePlayers();
+      expect(useGameStore.getState().winner).toBeNull();
+    });
+
+    it('winner is reset after goHome', () => {
+      useGameStore.getState().eliminatePlayer(0);
+      expect(useGameStore.getState().winner).toBe('civil');
+      useGameStore.getState().goHome();
+      expect(useGameStore.getState().winner).toBeNull();
     });
   });
 });

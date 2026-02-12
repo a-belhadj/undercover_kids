@@ -288,6 +288,134 @@
   transform: scale(0.95);
 }
 
+/* ── Eliminated player ─────────────────────── */
+.speakingOrderItemEliminated {
+  opacity: 0.55;
+}
+
+.speakingOrderItemEliminated[data-role='civil'] {
+  border-color: var(--color-success);
+}
+
+.speakingOrderItemEliminated[data-role='undercover'] {
+  border-color: var(--color-danger);
+}
+
+.speakingOrderItemEliminated[data-role='mrwhite'] {
+  border-color: var(--color-text-light);
+}
+
+.nameEliminated {
+  text-decoration: line-through;
+}
+
+/* ── Vote overlay ──────────────────────────── */
+.voteOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  animation: peekFadeIn 200ms ease-out;
+}
+
+.voteModal {
+  background: var(--color-bg);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 340px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: var(--shadow);
+}
+
+.voteTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.voteList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.votePlayerBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 150ms;
+  width: 100%;
+  text-align: left;
+}
+
+.votePlayerBtn:active {
+  transform: scale(0.97);
+  border-color: var(--color-danger);
+}
+
+.votePlayerName {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.voteConfirmAvatar {
+  padding: 0.5rem 0;
+}
+
+.voteConfirmActions {
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.voteCancelBtn {
+  flex: 1;
+  padding: 0.6rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  border: 2px solid var(--color-border);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 150ms;
+}
+
+.voteCancelBtn:active {
+  transform: scale(0.95);
+}
+
+.voteConfirmBtn {
+  flex: 1;
+  padding: 0.6rem;
+  border-radius: var(--radius-sm);
+  background: var(--color-danger);
+  border: 2px solid var(--color-danger);
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  transition: all 150ms;
+}
+
+.voteConfirmBtn:active {
+  transform: scale(0.95);
+}
+
 /* ── Anti-cheat alarm flash ───────────────── */
 .alarmFlash {
   position: fixed;

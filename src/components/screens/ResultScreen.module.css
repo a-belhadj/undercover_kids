@@ -1,0 +1,127 @@
+/* ── Result screen ──────────────────────────── */
+.banner {
+  font-size: 2.5rem;
+  text-align: center;
+  line-height: 1;
+}
+
+.title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.titleCivil {
+  color: var(--color-success);
+}
+
+.titleIntrus {
+  color: var(--color-danger);
+}
+
+.subtitle {
+  font-size: 0.95rem;
+  color: var(--color-text-light);
+  text-align: center;
+}
+
+/* ── Player list ───────────────────────────── */
+.playerList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  width: 100%;
+  max-width: 360px;
+}
+
+.playerRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--color-border);
+}
+
+.playerRow[data-role='civil'] {
+  border-color: var(--color-success);
+  background: rgba(0, 184, 148, 0.06);
+}
+
+.playerRow[data-role='undercover'] {
+  border-color: var(--color-danger);
+  background: rgba(225, 112, 85, 0.06);
+}
+
+.playerRow[data-role='mrwhite'] {
+  border-color: var(--color-text-light);
+  background: rgba(178, 190, 195, 0.06);
+}
+
+.playerName {
+  font-size: 0.9rem;
+  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.nameEliminated {
+  text-decoration: line-through;
+  opacity: 0.55;
+}
+
+.roleLabel {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  flex-shrink: 0;
+}
+
+.role_civil {
+  color: var(--color-success);
+}
+
+.role_undercover {
+  color: var(--color-danger);
+}
+
+.role_mrwhite {
+  color: var(--color-text-light);
+}
+
+.cardEmoji {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  flex-shrink: 0;
+}
+
+.cardLabel {
+  font-size: 0.55rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+  text-align: center;
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mystery {
+  font-size: 1.5rem;
+}
+
+/* ── Actions ───────────────────────────────── */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  margin-top: auto;
+}

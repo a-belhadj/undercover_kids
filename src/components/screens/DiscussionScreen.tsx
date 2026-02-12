@@ -22,7 +22,7 @@ type PeekState =
   | { step: 'revealed'; playerIndex: number };
 
 export default function DiscussionScreen() {
-  const { players, speakingOrder, restartWithSamePlayers, goHome, antiCheat, easyMode, pairDisplayMode } = useGameStore();
+  const { players, speakingOrder, restartWithSamePlayers, goHome, antiCheat, easyMode, pairDisplayMode, eliminatePlayer } = useGameStore();
   const [showAll, setShowAll] = useState(false);
   const [alarming, setAlarming] = useState(false);
   const alarmRef = useRef<{ stop: () => void } | null>(null);
@@ -31,6 +31,8 @@ export default function DiscussionScreen() {
   const [peekState, setPeekState] = useState<PeekState>({ step: 'closed' });
   // Show all cards confirmation state
   const [showAllConfirm, setShowAllConfirm] = useState(false);
+  // Vote mode: which player is being confirmed for elimination
+  const [voteTarget, setVoteTarget] = useState<number | null>(null);
 
   // Track how many times each player peeked at their card
   const [peekCounts, setPeekCounts] = useState<Record<number, number>>(() => {
@@ -133,11 +135,16 @@ export default function DiscussionScreen() {
           const p = players[playerIdx];
           const visible = showAll;
           const hasPeeked = peekCounts[playerIdx] > 0;
+          const isEliminated = p.eliminated;
           return (
             <div
               key={p.id}
-              className={`${styles.speakingOrderItem} ${visible ? styles.speakingOrderItemRevealed : ''}`}
-              data-role={visible ? p.role : undefined}
+              className={[
+                styles.speakingOrderItem,
+                visible ? styles.speakingOrderItemRevealed : '',
+                isEliminated ? styles.speakingOrderItemEliminated : '',
+              ].filter(Boolean).join(' ')}
+              data-role={(visible || isEliminated) ? p.role : undefined}
             >
               <span className={styles.speakingOrderNumber}>{order + 1}</span>
               <PlayerAvatar
@@ -145,7 +152,9 @@ export default function DiscussionScreen() {
                 color={p.avatarColor}
                 size="small"
               />
-              <span className={styles.speakingOrderName}>{p.name}</span>
+              <span className={`${styles.speakingOrderName} ${isEliminated ? styles.nameEliminated : ''}`}>
+                {p.name}
+              </span>
 
               {visible ? (
                 <div className={styles.inlineCard}>
@@ -165,21 +174,26 @@ export default function DiscussionScreen() {
                 </div>
               ) : (
                 <>
+                  {isEliminated && (
+                    <span className={`${styles.inlineRole} ${styles[`role_${p.role}`]}`}>
+                      {ROLE_LABELS[p.role]}
+                    </span>
+                  )}
                   {anyPeeked && hasPeeked && (
                     <span className={styles.peekBadge}>
                       👁️ {peekCounts[playerIdx]}
                     </span>
                   )}
-                  {antiCheat.allowPeek && !alarming && (
-                    <button
-                      className={styles.eyeBtn}
-                      onClick={() => handlePeek(playerIdx)}
-                      aria-label={`Voir la carte de ${p.name}`}
-                    >
-                      👁️
-                    </button>
-                  )}
                 </>
+              )}
+              {!visible && antiCheat.allowPeek && !alarming && (
+                <button
+                  className={styles.eyeBtn}
+                  onClick={() => handlePeek(playerIdx)}
+                  aria-label={`Voir la carte de ${p.name}`}
+                >
+                  👁️
+                </button>
               )}
             </div>
           );
@@ -270,6 +284,80 @@ export default function DiscussionScreen() {
 
       {/* Anti-cheat alarm flash overlay (portalled to #root for full-screen coverage) */}
       {alarming && createPortal(<div className={styles.alarmFlash} />, document.getElementById('root')!)}
+
+      {/* Vote to eliminate */}
+      <Button
+        variant="secondary"
+        block
+        icon="🗳️"
+        onClick={() => setVoteTarget(-1)}
+        style={{ maxWidth: 320 }}
+      >
+        Éliminer un joueur
+      </Button>
+
+      {/* Vote target picker overlay */}
+      {voteTarget !== null && createPortal(
+        <div className={styles.voteOverlay} onClick={() => setVoteTarget(null)}>
+          <div className={styles.voteModal} onClick={(e) => e.stopPropagation()}>
+            {voteTarget === -1 ? (
+              <>
+                <div className={styles.voteTitle}>Qui est éliminé ?</div>
+                <div className={styles.voteList}>
+                  {speakingOrder
+                    .filter((idx) => !players[idx].eliminated)
+                    .map((idx) => {
+                      const p = players[idx];
+                      return (
+                        <button
+                          key={p.id}
+                          className={styles.votePlayerBtn}
+                          onClick={() => setVoteTarget(idx)}
+                        >
+                          <PlayerAvatar
+                            emoji={p.avatarEmoji}
+                            color={p.avatarColor}
+                            size="small"
+                          />
+                          <span className={styles.votePlayerName}>{p.name}</span>
+                        </button>
+                      );
+                    })}
+                </div>
+                <button className={styles.voteCancelBtn} onClick={() => setVoteTarget(null)}>
+                  Annuler
+                </button>
+              </>
+            ) : (
+              <>
+                <div className={styles.voteTitle}>Éliminer {players[voteTarget].name} ?</div>
+                <div className={styles.voteConfirmAvatar}>
+                  <PlayerAvatar
+                    emoji={players[voteTarget].avatarEmoji}
+                    color={players[voteTarget].avatarColor}
+                    size="large"
+                  />
+                </div>
+                <div className={styles.voteConfirmActions}>
+                  <button className={styles.voteCancelBtn} onClick={() => setVoteTarget(-1)}>
+                    Retour
+                  </button>
+                  <button
+                    className={styles.voteConfirmBtn}
+                    onClick={() => {
+                      eliminatePlayer(voteTarget);
+                      setVoteTarget(null);
+                    }}
+                  >
+                    Éliminer
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>,
+        document.getElementById('root')!,
+      )}
 
       <div className={styles.actions}>
         <Button variant="primary" size="large" block icon="🔄" onClick={restartWithSamePlayers}>

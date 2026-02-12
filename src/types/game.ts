@@ -6,7 +6,10 @@ export type GamePhase =
   | 'home'
   | 'setup'
   | 'reveal'
-  | 'discussion';
+  | 'discussion'
+  | 'result';
+
+export type Winner = 'civil' | 'intrus';
 
 export interface Player {
   id: string;
@@ -16,6 +19,7 @@ export interface Player {
   emojiLabel: string | null;
   avatarEmoji: string;
   avatarColor: string;
+  eliminated: boolean;
 }
 
 export interface EmojiPair {
@@ -33,6 +37,7 @@ export interface GameState {
   currentPair: EmojiPair | null;
   currentPlayerIndex: number;
   speakingOrder: number[];
+  winner: Winner | null;
   undercoverCount: number;
   mrWhiteCount: number;
   intrusCount: number;

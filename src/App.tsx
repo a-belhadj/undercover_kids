@@ -6,6 +6,7 @@ import HomeScreen from './components/screens/HomeScreen';
 import SetupScreen from './components/screens/SetupScreen';
 import RevealScreen from './components/screens/RevealScreen';
 import DiscussionScreen from './components/screens/DiscussionScreen';
+import ResultScreen from './components/screens/ResultScreen';
 import styles from './App.module.css';
 
 const SCREENS = {
@@ -13,10 +14,11 @@ const SCREENS = {
   setup: SetupScreen,
   reveal: RevealScreen,
   discussion: DiscussionScreen,
+  result: ResultScreen,
 } as const;
 
 /** Phases where quitting loses the game and needs confirmation */
-const PROTECTED_PHASES = new Set(['reveal', 'discussion']);
+const PROTECTED_PHASES = new Set(['reveal', 'discussion', 'result']);
 
 export default function App() {
   const phase = useGameStore((s) => s.phase);

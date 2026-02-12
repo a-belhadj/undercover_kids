@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { GameState, GamePhase, PairDisplayMode } from '../types/game';
-import { pickPair, createPlayers, buildSpeakingOrder } from '../logic/gameEngine';
+import { pickPair, createPlayers, buildSpeakingOrder, checkGameOver } from '../logic/gameEngine';
 import { computeFinalCounts } from '../logic/roles';
 import { savePlayerProfiles, loadUndercoverCount, saveUndercoverCount, loadMrWhiteCount, saveMrWhiteCount, loadDisabledPairs, saveDisabledPairs, loadEasyMode, saveEasyMode, loadSelectedCategories, saveSelectedCategories, loadMrWhiteCannotStart, saveMrWhiteCannotStart, loadAntiCheat, saveAntiCheat, loadIntrusCount, saveIntrusCount, loadUndercoverEnabled, saveUndercoverEnabled, loadMrWhiteEnabled, saveMrWhiteEnabled, loadRandomSplit, saveRandomSplit, loadPairDisplayMode, savePairDisplayMode } from '../lib/storage';
 import type { AntiCheatSettings } from '../lib/storage';
@@ -34,6 +34,9 @@ interface GameActions {
   // Restart
   restartWithSamePlayers: () => void;
   disableCurrentPairAndRestart: (firstPlayerIndex?: number) => void;
+
+  // Elimination
+  eliminatePlayer: (playerIndex: number) => void;
 }
 
 const initialState: GameState = {
@@ -42,6 +45,7 @@ const initialState: GameState = {
   currentPair: null,
   currentPlayerIndex: 0,
   speakingOrder: [],
+  winner: null,
   undercoverCount: loadUndercoverCount(),
   mrWhiteCount: loadMrWhiteCount(),
   intrusCount: loadIntrusCount(),
@@ -72,6 +76,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     currentPair: null,
     currentPlayerIndex: 0,
     speakingOrder: [],
+    winner: null,
     undercoverCount: get().undercoverCount,
     mrWhiteCount: get().mrWhiteCount,
     intrusCount: get().intrusCount,
@@ -166,6 +171,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       currentPair: pair,
       currentPlayerIndex: 0,
       speakingOrder,
+      winner: null,
     });
   },
 
@@ -200,6 +206,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       currentPair: pair,
       currentPlayerIndex: 0,
       speakingOrder,
+      winner: null,
     });
   },
 
@@ -236,6 +243,20 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       currentPair: pair,
       currentPlayerIndex: 0,
       speakingOrder,
+      winner: null,
     });
+  },
+
+  eliminatePlayer: (playerIndex: number) => {
+    const { players } = get();
+    const updated = players.map((p, i) =>
+      i === playerIndex ? { ...p, eliminated: true } : p,
+    );
+    const winner = checkGameOver(updated);
+    if (winner) {
+      set({ players: updated, winner, phase: 'result' });
+    } else {
+      set({ players: updated });
+    }
   },
 }));
