@@ -197,6 +197,151 @@
   margin-top: auto;
 }
 
+/* ── Full-screen peek overlay ────────────── */
+.peekOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--color-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: peekFadeIn 200ms ease-out;
+  cursor: pointer;
+}
+
+@keyframes peekFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.peekContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2rem;
+  width: 100%;
+  max-width: 360px;
+}
+
+.peekName {
+  font-size: min(1.3rem, 4vh);
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.peekEmoji {
+  margin: 0.25rem 0;
+}
+
+.peekEmojiLabel {
+  font-size: min(1.1rem, 3vh);
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.peekRoleTag {
+  font-size: min(1rem, 2.8vh);
+  font-weight: 600;
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+.peekRoleCivil {
+  background: rgba(0, 184, 148, 0.12);
+  color: var(--color-success);
+}
+
+.peekRoleUndercover {
+  background: rgba(225, 112, 85, 0.12);
+  color: var(--color-danger);
+}
+
+.peekRoleMrwhite {
+  background: rgba(178, 190, 195, 0.2);
+  color: #636e72;
+}
+
+.peekRoleNeutral {
+  background: rgba(255, 165, 0, 0.12);
+  color: #e67e00;
+}
+
+.peekInstruction {
+  font-size: min(1.15rem, 3vh);
+  color: var(--color-text-light);
+  text-align: center;
+}
+
+.peekHidden {
+  font-size: min(3.5rem, 8vh);
+  opacity: 0.3;
+}
+
+.peekRevealBtn {
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 0.8rem 2rem;
+  border-radius: var(--radius);
+  background: var(--color-primary);
+  color: #fff;
+  width: 100%;
+  max-width: 280px;
+  text-align: center;
+}
+
+.peekRevealBtn:active {
+  transform: scale(0.95);
+}
+
+.peekRevealBtn:disabled {
+  opacity: 0.7;
+}
+
+.showAllCancelBtn {
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.6rem 1.5rem;
+  border-radius: var(--radius);
+  background: var(--color-surface);
+  color: var(--color-text-light);
+  width: 100%;
+  max-width: 280px;
+  text-align: center;
+}
+
+.showAllCancelBtn:active {
+  transform: scale(0.95);
+}
+
+.peekCardArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  cursor: pointer;
+}
+
+.peekCloseBtn {
+  margin-top: 1rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  padding: 0.8rem 2rem;
+  border-radius: var(--radius);
+  background: var(--color-success);
+  color: #fff;
+  width: 100%;
+  max-width: 280px;
+  text-align: center;
+}
+
+.peekCloseBtn:active {
+  transform: scale(0.95);
+}
+
 /* ── Anti-cheat alarm flash ───────────────── */
 .alarmFlash {
   position: fixed;

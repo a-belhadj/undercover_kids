@@ -107,11 +107,17 @@ async function flashTorch(duration = 1500): Promise<() => void> {
 const ALARM_DURATION = 1500;
 
 export default function DiscussionScreen() {
-  const { players, speakingOrder, restartWithSamePlayers, goHome, antiCheat, pairDisplayMode } = useGameStore();
+  const { players, speakingOrder, restartWithSamePlayers, goHome, antiCheat, easyMode, pairDisplayMode } = useGameStore();
   const [showAll, setShowAll] = useState(false);
-  const [revealedPlayers, setRevealedPlayers] = useState<Set<number>>(new Set());
   const [alarming, setAlarming] = useState(false);
   const alarmRef = useRef<{ stop: () => void } | null>(null);
+
+  // Full-screen peek overlay state (index of the player being peeked, or null)
+  const [peekingPlayer, setPeekingPlayer] = useState<number | null>(null);
+  // Whether the peek overlay is in confirmation step (true) or showing the card (false)
+  const [peekConfirm, setPeekConfirm] = useState(true);
+  // Show all cards confirmation state
+  const [showAllConfirm, setShowAllConfirm] = useState(false);
 
   // Track how many times each player peeked at their card
   const [peekCounts, setPeekCounts] = useState<Record<number, number>>(() => {
@@ -147,32 +153,46 @@ export default function DiscussionScreen() {
     }, ALARM_DURATION);
   }, []);
 
-  /** Toggle show all cards inline */
+  /** Toggle show all cards */
   const handleShowAll = useCallback(() => {
     if (showAll) {
       setShowAll(false);
       return;
     }
-    if (antiCheat.showAllAlarm) {
-      triggerAlarm(() => {
-        setShowCardsCount((prev) => prev + 1);
-        setShowAll(true);
-      });
-    } else {
+    setShowAllConfirm(true);
+  }, [showAll]);
+
+  /** Confirm show all — trigger alarm if needed, then reveal */
+  const confirmShowAll = useCallback(() => {
+    const reveal = () => {
       setShowCardsCount((prev) => prev + 1);
       setShowAll(true);
-    }
-  }, [showAll, antiCheat.showAllAlarm, triggerAlarm]);
+      setShowAllConfirm(false);
+    };
 
-  /** Peek at a single player's card inline */
+    if (antiCheat.showAllAlarm) {
+      triggerAlarm(reveal);
+    } else {
+      reveal();
+    }
+  }, [antiCheat.showAllAlarm, triggerAlarm]);
+
+  const cancelShowAll = useCallback(() => {
+    setShowAllConfirm(false);
+  }, []);
+
+  /** Peek at a single player's card — opens full-screen overlay in confirmation step */
   const handlePeek = useCallback((playerIndex: number) => {
+    setPeekingPlayer(playerIndex);
+    setPeekConfirm(true);
+  }, []);
+
+  /** Confirm peek — trigger alarm if needed, then show the card */
+  const confirmPeek = useCallback(() => {
+    if (peekingPlayer === null) return;
     const reveal = () => {
-      setPeekCounts((prev) => ({ ...prev, [playerIndex]: (prev[playerIndex] || 0) + 1 }));
-      setRevealedPlayers((prev) => {
-        const next = new Set(prev);
-        next.add(playerIndex);
-        return next;
-      });
+      setPeekCounts((prev) => ({ ...prev, [peekingPlayer]: (prev[peekingPlayer] || 0) + 1 }));
+      setPeekConfirm(false);
     };
 
     if (antiCheat.peekAlarm) {
@@ -180,19 +200,14 @@ export default function DiscussionScreen() {
     } else {
       reveal();
     }
-  }, [antiCheat.peekAlarm, triggerAlarm]);
+  }, [peekingPlayer, antiCheat.peekAlarm, triggerAlarm]);
 
-  /** Hide a single player's card */
-  const handleHide = useCallback((playerIndex: number) => {
-    setRevealedPlayers((prev) => {
-      const next = new Set(prev);
-      next.delete(playerIndex);
-      return next;
-    });
+  /** Close the peek overlay */
+  const closePeek = useCallback(() => {
+    setPeekingPlayer(null);
+    setPeekConfirm(true);
   }, []);
 
-  /** Check if a player's card should be visible */
-  const isVisible = (playerIdx: number) => showAll || revealedPlayers.has(playerIdx);
 
   return (
     <GameLayout title="Discussion">
@@ -204,7 +219,8 @@ export default function DiscussionScreen() {
       <div className={styles.speakingOrderList}>
         {speakingOrder.map((playerIdx, order) => {
           const p = players[playerIdx];
-          const visible = isVisible(playerIdx);
+          const visible = showAll;
+          const hasPeeked = peekCounts[playerIdx] > 0;
           return (
             <div
               key={p.id}
@@ -234,25 +250,14 @@ export default function DiscussionScreen() {
                       {pairDisplayMode !== 'icon' && p.emojiLabel && <span className={styles.inlineLabel}>{p.emojiLabel}</span>}
                     </div>
                   )}
-                  {/* Hide button for individual peek (not when showAll) */}
-                  {!showAll && (
-                    <button
-                      className={styles.eyeBtn}
-                      onClick={() => handleHide(playerIdx)}
-                      aria-label={`Cacher la carte de ${p.name}`}
-                    >
-                      🙈
-                    </button>
-                  )}
                 </div>
               ) : (
                 <>
-                  {anyPeeked && peekCounts[playerIdx] > 0 && (
+                  {anyPeeked && hasPeeked && (
                     <span className={styles.peekBadge}>
                       👁️ {peekCounts[playerIdx]}
                     </span>
                   )}
-                  {/* Eye button to peek at this player */}
                   {antiCheat.allowPeek && !alarming && (
                     <button
                       className={styles.eyeBtn}
@@ -268,6 +273,74 @@ export default function DiscussionScreen() {
           );
         })}
       </div>
+
+      {/* Full-screen peek overlay */}
+      {peekingPlayer !== null && createPortal(
+        <div className={styles.peekOverlay} onClick={peekConfirm ? closePeek : closePeek}>
+          <div className={styles.peekContent} onClick={(e) => e.stopPropagation()}>
+            <PlayerAvatar
+              emoji={players[peekingPlayer].avatarEmoji}
+              color={players[peekingPlayer].avatarColor}
+              size="large"
+            />
+            <div className={styles.peekName}>{players[peekingPlayer].name}</div>
+
+            {peekConfirm ? (
+              <>
+                <div className={styles.peekInstruction}>
+                  Retourne le téléphone vers toi
+                </div>
+                <div className={styles.peekHidden}>👀</div>
+                <button className={styles.peekRevealBtn} onClick={confirmPeek} disabled={alarming}>
+                  {alarming ? '🚨 Attention !' : '👁️ Voir mon image'}
+                </button>
+              </>
+            ) : (
+              <div className={styles.peekCardArea} onClick={closePeek}>
+                {players[peekingPlayer].role === 'mrwhite' ? (
+                  <>
+                    <div className={styles.peekEmoji}>
+                      <EmojiCard emoji="❓" large mystery />
+                    </div>
+                    <span className={styles.peekRoleTag + ' ' + styles.peekRoleMrwhite}>
+                      Tu es Mr. White ! Bluff ! 🎩
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    {pairDisplayMode !== 'text' && (
+                      <div className={`${styles.peekEmoji} emoji-reveal`}>
+                        <EmojiCard emoji={players[peekingPlayer].emoji!} large />
+                      </div>
+                    )}
+                    {pairDisplayMode !== 'icon' && players[peekingPlayer].emojiLabel && (
+                      <div className={styles.peekEmojiLabel}>{players[peekingPlayer].emojiLabel}</div>
+                    )}
+                    <span
+                      className={`${styles.peekRoleTag} ${
+                        easyMode
+                          ? players[peekingPlayer].role === 'civil' ? styles.peekRoleCivil : styles.peekRoleUndercover
+                          : styles.peekRoleNeutral
+                      }`}
+                    >
+                      {easyMode
+                        ? players[peekingPlayer].role === 'civil'
+                          ? 'Tu es Civil ! 🟢'
+                          : 'Tu es Undercover ! 🥷'
+                        : 'Mémorise bien ton image !'}
+                    </span>
+                  </>
+                )}
+
+                <button className={styles.peekCloseBtn} onClick={closePeek}>
+                  ✅ J'ai vu !
+                </button>
+              </div>
+            )}
+          </div>
+        </div>,
+        document.getElementById('root')!,
+      )}
 
       {anyPeeked && allRevealed && (
         <div className={styles.allRevealedBadge}>
@@ -297,6 +370,25 @@ export default function DiscussionScreen() {
         <div className={styles.showCardsCounter}>
           Cartes révélées {showCardsCount} fois
         </div>
+      )}
+
+      {/* Show all confirmation overlay */}
+      {showAllConfirm && createPortal(
+        <div className={styles.peekOverlay} onClick={cancelShowAll}>
+          <div className={styles.peekContent} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.peekInstruction}>
+              Toutes les cartes vont être révélées !
+            </div>
+            <div className={styles.peekHidden}>👀</div>
+            <button className={styles.peekRevealBtn} onClick={confirmShowAll} disabled={alarming}>
+              {alarming ? '🚨 Attention !' : '👀 Voir les cartes'}
+            </button>
+            <button className={styles.showAllCancelBtn} onClick={cancelShowAll}>
+              Annuler
+            </button>
+          </div>
+        </div>,
+        document.getElementById('root')!,
       )}
 
       {/* Anti-cheat alarm flash overlay (portalled to #root for full-screen coverage) */}

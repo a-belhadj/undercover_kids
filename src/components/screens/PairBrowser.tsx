@@ -19,7 +19,6 @@ interface PairBrowserProps {
 
 export default function PairBrowser({ onClose, embedded }: PairBrowserProps) {
   const [disabledIds, setDisabledIds] = useState<Set<string>>(() => new Set(loadDisabledPairs()));
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null);
   const [shareCode, setShareCode] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [importCode, setImportCode] = useState('');
@@ -30,36 +29,25 @@ export default function PairBrowser({ onClose, embedded }: PairBrowserProps) {
     saveDisabledPairs([...disabledIds]);
   }, [disabledIds]);
 
-  const togglePair = (id: string) => {
+  const enablePair = (id: string) => {
     setDisabledIds((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
+      next.delete(id);
       return next;
     });
   };
 
-  const toggleCategory = (categoryId: string) => {
-    const catPairs = emojiPairs.filter((p) => p.category === categoryId);
-    const allDisabled = catPairs.every((p) => disabledIds.has(p.id));
+  const enableCategory = (categoryId: string) => {
     setDisabledIds((prev) => {
       const next = new Set(prev);
-      for (const pair of catPairs) {
-        if (allDisabled) {
-          next.delete(pair.id);
-        } else {
-          next.add(pair.id);
-        }
+      for (const pair of emojiPairs.filter((p) => p.category === categoryId)) {
+        next.delete(pair.id);
       }
       return next;
     });
   };
 
   const enableAll = () => setDisabledIds(new Set());
-  const totalEnabled = emojiPairs.length - disabledIds.size;
 
   const handleShare = () => {
     const code = encodePairConfig(disabledIds);
@@ -72,7 +60,6 @@ export default function PairBrowser({ onClose, embedded }: PairBrowserProps) {
   const handleCopy = async () => {
     if (!shareCode) return;
     try {
-      // Try modern API first
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(shareCode);
         setCopied(true);
@@ -81,7 +68,6 @@ export default function PairBrowser({ onClose, embedded }: PairBrowserProps) {
     } catch {
       // Fall through to fallback
     }
-    // Fallback: temporary textarea + execCommand
     try {
       const ta = document.createElement('textarea');
       ta.value = shareCode;
@@ -116,15 +102,23 @@ export default function PairBrowser({ onClose, embedded }: PairBrowserProps) {
     setImportCode('');
   };
 
+  // Only show disabled pairs, grouped by category
+  const disabledPairs = emojiPairs.filter((p) => disabledIds.has(p.id));
+  const disabledByCategory = CATEGORIES
+    .map((cat) => ({
+      ...cat,
+      pairs: disabledPairs.filter((p) => p.category === cat.id),
+    }))
+    .filter((cat) => cat.pairs.length > 0);
+
   const content = (
     <>
+      {/* Share / Import section */}
       <div className={styles.toolbar}>
-        <button className={styles.toolBtn} onClick={enableAll}>Tout activer</button>
         <button className={styles.toolBtn} onClick={handleShare}>Partager</button>
-        <span className={styles.counter}>{totalEnabled}/{emojiPairs.length}</span>
+        <span className={styles.counter}>{emojiPairs.length - disabledIds.size}/{emojiPairs.length} actives</span>
       </div>
 
-      {/* Share / Import section */}
       {shareCode && (
         <div className={styles.shareSection}>
           <div className={styles.shareLabel}>Code de ta config :</div>
@@ -152,62 +146,57 @@ export default function PairBrowser({ onClose, embedded }: PairBrowserProps) {
         {importSuccess && <div className={styles.importOk}>Config importée !</div>}
       </div>
 
-      <div className={styles.list}>
-        {CATEGORIES.map((cat) => {
-          const catPairs = emojiPairs.filter((p) => p.category === cat.id);
-          const enabledCount = catPairs.filter((p) => !disabledIds.has(p.id)).length;
-          const allDisabled = enabledCount === 0;
-          const isExpanded = expandedCategory === cat.id;
+      {/* Disabled pairs list */}
+      {disabledPairs.length === 0 ? (
+        <div className={styles.emptyState}>
+          Toutes les paires sont actives !
+        </div>
+      ) : (
+        <>
+          <div className={styles.disabledHeader}>
+            <span>{disabledPairs.length} paire{disabledPairs.length > 1 ? 's' : ''} désactivée{disabledPairs.length > 1 ? 's' : ''}</span>
+            <button className={styles.toolBtn} onClick={enableAll}>Tout réactiver</button>
+          </div>
 
-          return (
-            <div key={cat.id} className={styles.category}>
-              <button
-                className={styles.categoryHeader}
-                onClick={() => setExpandedCategory(isExpanded ? null : cat.id)}
-              >
-                <span className={styles.catIcon}>{cat.icon}</span>
-                <span className={styles.catLabel}>{cat.label}</span>
-                <span className={styles.catCount}>{enabledCount}/{catPairs.length}</span>
-                <span className={styles.chevron}>{isExpanded ? '▾' : '▸'}</span>
-              </button>
-
-              {isExpanded && (
-                <div className={styles.pairList}>
+          <div className={styles.list}>
+            {disabledByCategory.map((cat) => (
+              <div key={cat.id} className={styles.category}>
+                <div className={styles.categoryHeader}>
+                  <span className={styles.catIcon}>{cat.icon}</span>
+                  <span className={styles.catLabel}>{cat.label}</span>
+                  <span className={styles.catCount}>{cat.pairs.length}</span>
                   <button
-                    className={allDisabled ? styles.toggleAllBtn : styles.toggleAllBtnActive}
-                    onClick={() => toggleCategory(cat.id)}
+                    className={styles.enableCatBtn}
+                    onClick={() => enableCategory(cat.id)}
                   >
-                    {allDisabled ? 'Tout activer' : 'Tout désactiver'}
+                    Tout réactiver
                   </button>
-
-                  {catPairs.map((pair) => {
-                    const enabled = !disabledIds.has(pair.id);
-                    return (
-                      <button
-                        key={pair.id}
-                        className={enabled ? styles.pairRow : styles.pairRowDisabled}
-                        onClick={() => togglePair(pair.id)}
-                      >
-                        <div className={styles.pairEmojis}>
-                          <EmojiOrImage value={pair.civil} className={styles.pairEmoji} />
-                          <span className={styles.vs}>vs</span>
-                          <EmojiOrImage value={pair.undercover} className={styles.pairEmoji} />
-                        </div>
-                        <div className={styles.pairLabels}>
-                          <span>{pair.civilLabel}</span>
-                          <span className={styles.vsText}>vs</span>
-                          <span>{pair.undercoverLabel}</span>
-                        </div>
-                        <span className={styles.checkmark}>{enabled ? '✓' : ''}</span>
-                      </button>
-                    );
-                  })}
                 </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+
+                <div className={styles.pairList}>
+                  {cat.pairs.map((pair) => (
+                    <div key={pair.id} className={styles.pairRow}>
+                      <div className={styles.pairEmojis}>
+                        <EmojiOrImage value={pair.civil} className={styles.pairEmoji} />
+                        <span className={styles.vs}>vs</span>
+                        <EmojiOrImage value={pair.undercover} className={styles.pairEmoji} />
+                      </div>
+                      <div className={styles.pairLabels}>
+                        <span>{pair.civilLabel}</span>
+                        <span className={styles.vsText}>vs</span>
+                        <span>{pair.undercoverLabel}</span>
+                      </div>
+                      <button className={styles.enableBtn} onClick={() => enablePair(pair.id)}>
+                        Réactiver
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
     </>
   );
 
@@ -219,8 +208,7 @@ export default function PairBrowser({ onClose, embedded }: PairBrowserProps) {
     <div className={styles.overlay} onClick={onClose}>
       <div className={styles.panel} onClick={(e) => e.stopPropagation()}>
         <div className={styles.header}>
-          <span className={styles.title}>Gérer les paires</span>
-          <span className={styles.counter}>{totalEnabled}/{emojiPairs.length}</span>
+          <span className={styles.title}>Paires désactivées</span>
           <button className={styles.closeBtn} onClick={onClose}>✕</button>
         </div>
         {content}
