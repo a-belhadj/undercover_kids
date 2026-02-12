@@ -25,6 +25,69 @@ export function getRoleDistribution(
   return { civil, undercover: uc, mrwhite: mw };
 }
 
+export interface IntrusConfig {
+  intrusCount: number;
+  undercoverEnabled: boolean;
+  mrWhiteEnabled: boolean;
+  randomSplit: boolean;
+  undercoverCount: number;
+  mrWhiteCount: number;
+}
+
+/**
+ * Compute the final UC/MW counts from the intrus configuration.
+ * Pure function — no side effects.
+ */
+export function computeFinalCounts(config: IntrusConfig): { finalUC: number; finalMW: number } {
+  const { intrusCount, undercoverEnabled, mrWhiteEnabled, randomSplit, undercoverCount, mrWhiteCount } = config;
+  if (!undercoverEnabled) {
+    return { finalUC: 0, finalMW: intrusCount };
+  }
+  if (!mrWhiteEnabled) {
+    return { finalUC: intrusCount, finalMW: 0 };
+  }
+  // Both enabled
+  if (randomSplit) {
+    // Random split: each can be 0, sum = intrusCount
+    const finalMW = Math.floor(Math.random() * (intrusCount + 1));
+    return { finalUC: intrusCount - finalMW, finalMW };
+  }
+  // Manual split: use stored sub-counts
+  return { finalUC: undercoverCount, finalMW: mrWhiteCount };
+}
+
+/**
+ * Clamp intrus sub-counts so they are consistent with playerCount and enabled flags.
+ * Returns the clamped values for intrusCount, undercoverCount, and mrWhiteCount.
+ */
+export function clampIntrusCounts(
+  playerCount: number,
+  config: IntrusConfig,
+): { intrusCount: number; undercoverCount: number; mrWhiteCount: number } {
+  const { undercoverEnabled, mrWhiteEnabled, randomSplit } = config;
+  const maxSpecial = Math.floor(playerCount / 2);
+  const ic = Math.max(1, Math.min(config.intrusCount, maxSpecial));
+
+  if (!mrWhiteEnabled) {
+    return { intrusCount: ic, undercoverCount: ic, mrWhiteCount: 0 };
+  }
+  if (!undercoverEnabled) {
+    return { intrusCount: ic, undercoverCount: 0, mrWhiteCount: ic };
+  }
+  if (randomSplit) {
+    return { intrusCount: ic, undercoverCount: config.undercoverCount, mrWhiteCount: config.mrWhiteCount };
+  }
+  // Both enabled, manual split: ensure UC + MW = ic, each >= 0
+  let uc = config.undercoverCount;
+  let mw = config.mrWhiteCount;
+  if (uc + mw !== ic) {
+    mw = ic - uc;
+    if (mw < 0) { mw = 0; uc = ic; }
+    if (uc < 0) { uc = 0; mw = ic; }
+  }
+  return { intrusCount: ic, undercoverCount: uc, mrWhiteCount: mw };
+}
+
 export function assignRoles(
   playerCount: number,
   undercoverCount: number,

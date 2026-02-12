@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getRoleDistribution, assignRoles } from './roles';
+import { getRoleDistribution, assignRoles, computeFinalCounts, clampIntrusCounts } from './roles';
 
 describe('getRoleDistribution', () => {
   describe('basic distributions with explicit counts', () => {
@@ -197,5 +197,102 @@ describe('assignRoles', () => {
       }
       expect(seen.size).toBeGreaterThanOrEqual(2);
     });
+  });
+});
+
+describe('computeFinalCounts', () => {
+  it('returns all MW when undercover disabled', () => {
+    expect(computeFinalCounts({
+      intrusCount: 3, undercoverEnabled: false, mrWhiteEnabled: true,
+      randomSplit: false, undercoverCount: 2, mrWhiteCount: 1,
+    })).toEqual({ finalUC: 0, finalMW: 3 });
+  });
+
+  it('returns all UC when mrWhite disabled', () => {
+    expect(computeFinalCounts({
+      intrusCount: 2, undercoverEnabled: true, mrWhiteEnabled: false,
+      randomSplit: false, undercoverCount: 1, mrWhiteCount: 1,
+    })).toEqual({ finalUC: 2, finalMW: 0 });
+  });
+
+  it('uses manual split when both enabled and randomSplit off', () => {
+    expect(computeFinalCounts({
+      intrusCount: 3, undercoverEnabled: true, mrWhiteEnabled: true,
+      randomSplit: false, undercoverCount: 2, mrWhiteCount: 1,
+    })).toEqual({ finalUC: 2, finalMW: 1 });
+  });
+
+  it('random split sums to intrusCount', () => {
+    for (let i = 0; i < 20; i++) {
+      const { finalUC, finalMW } = computeFinalCounts({
+        intrusCount: 4, undercoverEnabled: true, mrWhiteEnabled: true,
+        randomSplit: true, undercoverCount: 0, mrWhiteCount: 0,
+      });
+      expect(finalUC + finalMW).toBe(4);
+      expect(finalUC).toBeGreaterThanOrEqual(0);
+      expect(finalMW).toBeGreaterThanOrEqual(0);
+    }
+  });
+});
+
+describe('clampIntrusCounts', () => {
+  it('clamps intrusCount to maxSpecial', () => {
+    const result = clampIntrusCounts(4, {
+      intrusCount: 5, undercoverEnabled: true, mrWhiteEnabled: false,
+      randomSplit: false, undercoverCount: 5, mrWhiteCount: 0,
+    });
+    expect(result.intrusCount).toBe(2);
+    expect(result.undercoverCount).toBe(2);
+    expect(result.mrWhiteCount).toBe(0);
+  });
+
+  it('forces UC=ic MW=0 when mrWhite disabled', () => {
+    const result = clampIntrusCounts(6, {
+      intrusCount: 2, undercoverEnabled: true, mrWhiteEnabled: false,
+      randomSplit: false, undercoverCount: 1, mrWhiteCount: 1,
+    });
+    expect(result).toEqual({ intrusCount: 2, undercoverCount: 2, mrWhiteCount: 0 });
+  });
+
+  it('forces UC=0 MW=ic when undercover disabled', () => {
+    const result = clampIntrusCounts(6, {
+      intrusCount: 2, undercoverEnabled: false, mrWhiteEnabled: true,
+      randomSplit: false, undercoverCount: 1, mrWhiteCount: 1,
+    });
+    expect(result).toEqual({ intrusCount: 2, undercoverCount: 0, mrWhiteCount: 2 });
+  });
+
+  it('adjusts MW to match IC - UC when both enabled manual split', () => {
+    const result = clampIntrusCounts(8, {
+      intrusCount: 3, undercoverEnabled: true, mrWhiteEnabled: true,
+      randomSplit: false, undercoverCount: 2, mrWhiteCount: 0,
+    });
+    expect(result).toEqual({ intrusCount: 3, undercoverCount: 2, mrWhiteCount: 1 });
+  });
+
+  it('does not touch sub-counts when randomSplit is on', () => {
+    const result = clampIntrusCounts(8, {
+      intrusCount: 3, undercoverEnabled: true, mrWhiteEnabled: true,
+      randomSplit: true, undercoverCount: 5, mrWhiteCount: 7,
+    });
+    expect(result).toEqual({ intrusCount: 3, undercoverCount: 5, mrWhiteCount: 7 });
+  });
+
+  it('ensures intrusCount >= 1', () => {
+    const result = clampIntrusCounts(6, {
+      intrusCount: 0, undercoverEnabled: true, mrWhiteEnabled: false,
+      randomSplit: false, undercoverCount: 0, mrWhiteCount: 0,
+    });
+    expect(result.intrusCount).toBe(1);
+    expect(result.undercoverCount).toBe(1);
+  });
+
+  it('handles UC negative edge case', () => {
+    const result = clampIntrusCounts(6, {
+      intrusCount: 2, undercoverEnabled: true, mrWhiteEnabled: true,
+      randomSplit: false, undercoverCount: 5, mrWhiteCount: 0,
+    });
+    // uc=5, mw = 2-5 = -3 → mw=0, uc=2
+    expect(result).toEqual({ intrusCount: 2, undercoverCount: 2, mrWhiteCount: 0 });
   });
 });

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { GameState, GamePhase, PairDisplayMode } from '../types/game';
 import { pickPair, createPlayers, buildSpeakingOrder } from '../logic/gameEngine';
+import { computeFinalCounts } from '../logic/roles';
 import { savePlayerProfiles, loadUndercoverCount, saveUndercoverCount, loadMrWhiteCount, saveMrWhiteCount, loadDisabledPairs, saveDisabledPairs, loadEasyMode, saveEasyMode, loadSelectedCategories, saveSelectedCategories, loadMrWhiteCannotStart, saveMrWhiteCannotStart, loadAntiCheat, saveAntiCheat, loadIntrusCount, saveIntrusCount, loadUndercoverEnabled, saveUndercoverEnabled, loadMrWhiteEnabled, saveMrWhiteEnabled, loadRandomSplit, saveRandomSplit, loadPairDisplayMode, savePairDisplayMode } from '../lib/storage';
 import type { AntiCheatSettings } from '../lib/storage';
 
@@ -32,7 +33,7 @@ interface GameActions {
 
   // Restart
   restartWithSamePlayers: () => void;
-  disableCurrentPairAndRestart: () => void;
+  disableCurrentPairAndRestart: (firstPlayerIndex?: number) => void;
 }
 
 const initialState: GameState = {
@@ -52,25 +53,6 @@ const initialState: GameState = {
   mrWhiteCannotStart: loadMrWhiteCannotStart(),
   pairDisplayMode: loadPairDisplayMode(),
 };
-
-/** Compute final UC/MW counts from the intrus config */
-function computeFinalCounts(state: GameState): { finalUC: number; finalMW: number } {
-  const { intrusCount, undercoverEnabled, mrWhiteEnabled, randomSplit, undercoverCount, mrWhiteCount } = state;
-  if (!undercoverEnabled) {
-    return { finalUC: 0, finalMW: intrusCount };
-  }
-  if (!mrWhiteEnabled) {
-    return { finalUC: intrusCount, finalMW: 0 };
-  }
-  // Both enabled
-  if (randomSplit) {
-    // Random split: each can be 0, sum = intrusCount
-    const finalMW = Math.floor(Math.random() * (intrusCount + 1));
-    return { finalUC: intrusCount - finalMW, finalMW };
-  }
-  // Manual split: use stored sub-counts
-  return { finalUC: undercoverCount, finalMW: mrWhiteCount };
-}
 
 export const useGameStore = create<GameState & GameActions>((set, get) => ({
   ...initialState,
@@ -221,7 +203,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     });
   },
 
-  disableCurrentPairAndRestart: () => {
+  disableCurrentPairAndRestart: (firstPlayerIndex?: number) => {
     const state = get();
     const { currentPair, players, selectedCategories, mrWhiteCannotStart } = state;
     const { finalUC, finalMW } = computeFinalCounts(state);
@@ -234,9 +216,16 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       }
     }
     // Restart with same players but a new pair
-    const names = players.map((p) => p.name);
-    const emojis = players.map((p) => p.avatarEmoji);
-    const colors = players.map((p) => p.avatarColor);
+    // If firstPlayerIndex is set, rotate the player order so that player sees their card first
+    let names = players.map((p) => p.name);
+    let emojis = players.map((p) => p.avatarEmoji);
+    let colors = players.map((p) => p.avatarColor);
+    if (firstPlayerIndex != null && firstPlayerIndex > 0 && firstPlayerIndex < players.length) {
+      const rotate = <T,>(arr: T[]) => [...arr.slice(firstPlayerIndex), ...arr.slice(0, firstPlayerIndex)];
+      names = rotate(names);
+      emojis = rotate(emojis);
+      colors = rotate(colors);
+    }
     const disabledPairs = loadDisabledPairs();
     const pair = pickPair(selectedCategories, disabledPairs);
     const newPlayers = createPlayers(names, emojis, colors, pair, finalUC, finalMW);

@@ -262,22 +262,6 @@
   opacity: 0.7;
 }
 
-.showAllCancelBtn {
-  font-size: 0.95rem;
-  font-weight: 600;
-  padding: 0.6rem 1.5rem;
-  border-radius: var(--radius);
-  background: var(--color-surface);
-  color: var(--color-text-light);
-  width: 100%;
-  max-width: 280px;
-  text-align: center;
-}
-
-.showAllCancelBtn:active {
-  transform: scale(0.95);
-}
-
 .peekCardArea {
   display: flex;
   flex-direction: column;

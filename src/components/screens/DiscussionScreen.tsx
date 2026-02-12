@@ -6,6 +6,7 @@ import GameLayout from '../layout/GameLayout';
 import Button from '../ui/Button';
 import PlayerAvatar from '../ui/PlayerAvatar';
 import PlayerCardReveal from '../ui/PlayerCardReveal';
+import ConfirmOverlay from '../ui/ConfirmOverlay';
 import EmojiCard from '../ui/EmojiCard';
 import styles from './DiscussionScreen.module.css';
 
@@ -257,22 +258,14 @@ export default function DiscussionScreen() {
       )}
 
       {/* Show all confirmation overlay */}
-      {showAllConfirm && createPortal(
-        <div className={styles.peekOverlay} onClick={cancelShowAll}>
-          <div className={styles.peekContent} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.peekInstruction}>
-              Toutes les cartes vont être révélées !
-            </div>
-            <div className={styles.peekHidden}>👀</div>
-            <button className={styles.peekRevealBtn} onClick={confirmShowAll} disabled={alarming}>
-              {alarming ? '🚨 Attention !' : '👀 Voir les cartes'}
-            </button>
-            <button className={styles.showAllCancelBtn} onClick={cancelShowAll}>
-              Annuler
-            </button>
-          </div>
-        </div>,
-        document.getElementById('root')!,
+      {showAllConfirm && (
+        <ConfirmOverlay
+          message="Toutes les cartes vont être révélées !"
+          confirmLabel={alarming ? '🚨 Attention !' : '👀 Voir les cartes'}
+          disabled={alarming}
+          onConfirm={confirmShowAll}
+          onCancel={cancelShowAll}
+        />
       )}
 
       {/* Anti-cheat alarm flash overlay (portalled to #root for full-screen coverage) */}

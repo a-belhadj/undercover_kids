@@ -17,3 +17,28 @@
   font-size: min(3.5rem, 8vh);
   opacity: 0.3;
 }
+
+/* ── Disable pair button (top-right corner) ── */
+.disableBtn {
+  position: absolute;
+  top: 0.5rem;
+  right: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  border: 1.5px solid var(--color-border);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.6;
+  transition: all 150ms;
+  z-index: 10;
+}
+
+.disableBtn:active {
+  transform: scale(0.9);
+}

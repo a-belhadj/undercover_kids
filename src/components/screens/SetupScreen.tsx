@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useGameStore } from '../../store/gameStore';
+import { clampIntrusCounts } from '../../logic/roles';
 import { CATEGORIES, emojiPairs } from '../../data/emojiPairs';
 import { AVATAR_EMOJIS, AVATAR_COLORS } from '../../types/game';
 import { loadPlayerProfiles, savePlayerProfiles, loadDisabledPairs, loadRoster, saveRoster, loadGroups, saveGroups } from '../../lib/storage';
@@ -56,31 +57,12 @@ export default function SetupScreen() {
   const [newGroupName, setNewGroupName] = useState('');
   // Clamp intrusCount and sub-counts when config changes
   useEffect(() => {
-    const maxSpecial = Math.floor(playerCount / 2);
-    // Clamp intrusCount
-    const ic = Math.max(1, Math.min(intrusCount, maxSpecial));
-    if (ic !== intrusCount) setIntrusCount(ic);
-
-    // If only one type active, force sub-counts
-    if (!mrWhiteEnabled) {
-      if (undercoverCount !== ic) setUndercoverCount(ic);
-      if (mrWhiteCount !== 0) setMrWhiteCount(0);
-    } else if (!undercoverEnabled) {
-      if (undercoverCount !== 0) setUndercoverCount(0);
-      if (mrWhiteCount !== ic) setMrWhiteCount(ic);
-    } else if (!randomSplit) {
-      // Both enabled, manual split: ensure UC + MW = intrusCount, each >= 0
-      let uc = undercoverCount;
-      let mw = mrWhiteCount;
-      if (uc + mw !== ic) {
-        // Adjust MW to match
-        mw = ic - uc;
-        if (mw < 0) { mw = 0; uc = ic; }
-        if (uc < 0) { uc = 0; mw = ic; }
-      }
-      if (uc !== undercoverCount) setUndercoverCount(uc);
-      if (mw !== mrWhiteCount) setMrWhiteCount(mw);
-    }
+    const clamped = clampIntrusCounts(playerCount, {
+      intrusCount, undercoverCount, mrWhiteCount, undercoverEnabled, mrWhiteEnabled, randomSplit,
+    });
+    if (clamped.intrusCount !== intrusCount) setIntrusCount(clamped.intrusCount);
+    if (clamped.undercoverCount !== undercoverCount) setUndercoverCount(clamped.undercoverCount);
+    if (clamped.mrWhiteCount !== mrWhiteCount) setMrWhiteCount(clamped.mrWhiteCount);
   }, [playerCount, intrusCount, undercoverCount, mrWhiteCount, undercoverEnabled, mrWhiteEnabled, randomSplit, setIntrusCount, setUndercoverCount, setMrWhiteCount]);
 
   // Load roster & groups for "Charger un groupe" feature
