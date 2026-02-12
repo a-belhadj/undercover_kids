@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { cn } from '../../lib/cn';
 import styles from './Button.module.css';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -25,14 +26,12 @@ export default function Button({
   className,
   ...rest
 }: ButtonProps) {
-  const classes = [
+  const classes = cn(
     variantMap[variant],
-    size === 'large' ? styles.btnLarge : '',
-    block ? styles.btnBlock : '',
-    className ?? '',
-  ]
-    .filter(Boolean)
-    .join(' ');
+    size === 'large' && styles.btnLarge,
+    block && styles.btnBlock,
+    className,
+  );
 
   return (
     <button className={classes} {...rest}>

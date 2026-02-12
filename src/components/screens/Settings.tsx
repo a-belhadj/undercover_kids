@@ -2,6 +2,9 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import type { RosterPlayer, PlayerGroup } from '../../types/game';
 import { AVATAR_EMOJIS, AVATAR_COLORS } from '../../types/game';
 import { loadRoster, saveRoster, loadGroups, saveGroups } from '../../lib/storage';
+import { generateId } from '../../lib/generateId';
+import { resolveGroupMembers } from '../../lib/resolveGroupMembers';
+import { useDragListeners } from '../../hooks/useDragListeners';
 import { useGameStore } from '../../store/gameStore';
 import PairBrowser from './PairBrowser';
 import PlayerAvatar, { AvatarEmoji } from '../ui/PlayerAvatar';
@@ -54,7 +57,7 @@ export default function Settings({ onClose }: SettingsProps) {
   function addPlayer() {
     if (!newName.trim()) return;
     const player: RosterPlayer = {
-      id: Date.now().toString(36),
+      id: generateId(),
       name: newName.trim(),
       avatarEmoji: newEmoji,
       avatarColor: newColor,
@@ -146,34 +149,17 @@ export default function Settings({ onClose }: SettingsProps) {
     setRosterOverIndex(null);
   }, [rosterDragIndex, rosterOverIndex, moveRoster]);
 
-  useEffect(() => {
-    if (rosterDragIndex === null) return;
-    const onMove = (e: PointerEvent | TouchEvent) => {
-      e.preventDefault();
-      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-      handleRosterDragMove(clientY);
-    };
-    const onEnd = () => handleRosterDragEnd();
-    document.addEventListener('pointermove', onMove, { passive: false });
-    document.addEventListener('pointerup', onEnd);
-    document.addEventListener('pointercancel', onEnd);
-    document.addEventListener('touchmove', onMove, { passive: false });
-    document.addEventListener('touchend', onEnd);
-    document.addEventListener('touchcancel', onEnd);
-    return () => {
-      document.removeEventListener('pointermove', onMove);
-      document.removeEventListener('pointerup', onEnd);
-      document.removeEventListener('pointercancel', onEnd);
-      document.removeEventListener('touchmove', onMove);
-      document.removeEventListener('touchend', onEnd);
-      document.removeEventListener('touchcancel', onEnd);
-    };
-  }, [rosterDragIndex, handleRosterDragMove, handleRosterDragEnd]);
+  const onRosterDragMove = useCallback((e: PointerEvent | TouchEvent) => {
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    handleRosterDragMove(clientY);
+  }, [handleRosterDragMove]);
+
+  useDragListeners(rosterDragIndex !== null, onRosterDragMove, handleRosterDragEnd);
 
   function addGroup() {
     if (!groupName.trim() || selectedPlayerIds.size < 3) return;
     const group: PlayerGroup = {
-      id: Date.now().toString(36),
+      id: generateId(),
       name: groupName.trim(),
       playerIds: Array.from(selectedPlayerIds),
     };
@@ -262,30 +248,13 @@ export default function Settings({ onClose }: SettingsProps) {
     setChipOverIndex(null);
   }, [chipDragGroupId, chipDragIndex, chipOverIndex, moveGroupMember]);
 
-  useEffect(() => {
-    if (chipDragIndex === null) return;
-    const onMove = (e: PointerEvent | TouchEvent) => {
-      e.preventDefault();
-      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
-      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-      handleChipDragMove(clientX, clientY);
-    };
-    const onEnd = () => handleChipDragEnd();
-    document.addEventListener('pointermove', onMove, { passive: false });
-    document.addEventListener('pointerup', onEnd);
-    document.addEventListener('pointercancel', onEnd);
-    document.addEventListener('touchmove', onMove, { passive: false });
-    document.addEventListener('touchend', onEnd);
-    document.addEventListener('touchcancel', onEnd);
-    return () => {
-      document.removeEventListener('pointermove', onMove);
-      document.removeEventListener('pointerup', onEnd);
-      document.removeEventListener('pointercancel', onEnd);
-      document.removeEventListener('touchmove', onMove);
-      document.removeEventListener('touchend', onEnd);
-      document.removeEventListener('touchcancel', onEnd);
-    };
-  }, [chipDragIndex, handleChipDragMove, handleChipDragEnd]);
+  const onChipDragMove = useCallback((e: PointerEvent | TouchEvent) => {
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    handleChipDragMove(clientX, clientY);
+  }, [handleChipDragMove]);
+
+  useDragListeners(chipDragIndex !== null, onChipDragMove, handleChipDragEnd);
 
   function renderPlayersTab() {
     return (
@@ -455,9 +424,7 @@ export default function Settings({ onClose }: SettingsProps) {
           </div>
         )}
         {groups.map((g) => {
-          const members = g.playerIds
-            .map((pid) => roster.find((r) => r.id === pid))
-            .filter(Boolean) as RosterPlayer[];
+          const members = resolveGroupMembers(g.playerIds, roster);
 
           if (editingGroupId === g.id) {
             /* Inline edit form for this group */

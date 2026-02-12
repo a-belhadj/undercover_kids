@@ -22,319 +22,105 @@ const ANTI_CHEAT_KEY = 'undercover-kids-anti-cheat';
 
 import type { RosterPlayer, PlayerGroup, PairDisplayMode } from '../types/game';
 
-/** Load saved player profiles from localStorage */
-export function loadPlayerProfiles(): PlayerProfile[] {
+// ── Internal helpers ─────────────────────────────────────────
+
+function loadItem<T>(key: string, defaultValue: T): T {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as PlayerProfile[];
+    const raw = localStorage.getItem(key);
+    if (raw === null) return defaultValue;
+    return JSON.parse(raw) as T;
   } catch {
-    return [];
+    return defaultValue;
   }
 }
 
-/** Save player profiles to localStorage */
-export function savePlayerProfiles(profiles: PlayerProfile[]): void {
+function saveItem<T>(key: string, value: T): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(profiles));
+    localStorage.setItem(key, JSON.stringify(value));
   } catch {
     // localStorage may be unavailable (private browsing, quota exceeded, etc.)
   }
 }
 
-/** Clear saved profiles */
+// ── Player profiles ──────────────────────────────────────────
+
+export function loadPlayerProfiles(): PlayerProfile[] { return loadItem(STORAGE_KEY, []); }
+export function savePlayerProfiles(profiles: PlayerProfile[]): void { saveItem(STORAGE_KEY, profiles); }
+
 export function clearPlayerProfiles(): void {
-  try {
-    localStorage.removeItem(STORAGE_KEY);
-  } catch {
-    // localStorage may be unavailable
-  }
+  try { localStorage.removeItem(STORAGE_KEY); } catch { /* noop */ }
 }
 
-/** Load undercover count (default: 1) */
-export function loadUndercoverCount(): number {
-  try {
-    const raw = localStorage.getItem(UNDERCOVER_COUNT_KEY);
-    if (raw === null) return 1;
-    return JSON.parse(raw) as number;
-  } catch {
-    return 1;
-  }
-}
+// ── Undercover count ─────────────────────────────────────────
 
-/** Save undercover count */
-export function saveUndercoverCount(count: number): void {
-  try {
-    localStorage.setItem(UNDERCOVER_COUNT_KEY, JSON.stringify(count));
-  } catch {
-    // localStorage may be unavailable
-  }
-}
+export function loadUndercoverCount(): number { return loadItem(UNDERCOVER_COUNT_KEY, 1); }
+export function saveUndercoverCount(count: number): void { saveItem(UNDERCOVER_COUNT_KEY, count); }
 
-/** Load Mr. White count (default: 0) */
-export function loadMrWhiteCount(): number {
-  try {
-    const raw = localStorage.getItem(MRWHITE_COUNT_KEY);
-    if (raw === null) return 0;
-    return JSON.parse(raw) as number;
-  } catch {
-    return 0;
-  }
-}
+// ── Mr. White count ──────────────────────────────────────────
 
-/** Save Mr. White count */
-export function saveMrWhiteCount(count: number): void {
-  try {
-    localStorage.setItem(MRWHITE_COUNT_KEY, JSON.stringify(count));
-  } catch {
-    // localStorage may be unavailable
-  }
-}
+export function loadMrWhiteCount(): number { return loadItem(MRWHITE_COUNT_KEY, 0); }
+export function saveMrWhiteCount(count: number): void { saveItem(MRWHITE_COUNT_KEY, count); }
 
-/** Load disabled pair ids (pairs the user deselected) */
-export function loadDisabledPairs(): string[] {
-  try {
-    const raw = localStorage.getItem(DISABLED_PAIRS_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as string[];
-  } catch {
-    return [];
-  }
-}
+// ── Disabled pairs ───────────────────────────────────────────
 
-/** Save disabled pair ids */
-export function saveDisabledPairs(ids: string[]): void {
-  try {
-    localStorage.setItem(DISABLED_PAIRS_KEY, JSON.stringify(ids));
-  } catch {
-    // localStorage may be unavailable
-  }
-}
+export function loadDisabledPairs(): string[] { return loadItem(DISABLED_PAIRS_KEY, []); }
+export function saveDisabledPairs(ids: string[]): void { saveItem(DISABLED_PAIRS_KEY, ids); }
 
-/** Load easy mode toggle state (default: false) */
-export function loadEasyMode(): boolean {
-  try {
-    const raw = localStorage.getItem(EASY_MODE_KEY);
-    if (raw === null) return false;
-    return JSON.parse(raw) as boolean;
-  } catch {
-    return false;
-  }
-}
+// ── Easy mode ────────────────────────────────────────────────
 
-/** Save easy mode toggle state */
-export function saveEasyMode(enabled: boolean): void {
-  try {
-    localStorage.setItem(EASY_MODE_KEY, JSON.stringify(enabled));
-  } catch {
-    // localStorage may be unavailable
-  }
-}
+export function loadEasyMode(): boolean { return loadItem(EASY_MODE_KEY, false); }
+export function saveEasyMode(enabled: boolean): void { saveItem(EASY_MODE_KEY, enabled); }
 
 // ── Roster (persistent player list) ─────────────────────────
 
-/** Load the player roster */
-export function loadRoster(): RosterPlayer[] {
-  try {
-    const raw = localStorage.getItem(ROSTER_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as RosterPlayer[];
-  } catch {
-    return [];
-  }
-}
-
-/** Save the entire roster */
-export function saveRoster(roster: RosterPlayer[]): void {
-  try {
-    localStorage.setItem(ROSTER_KEY, JSON.stringify(roster));
-  } catch {
-    // localStorage may be unavailable
-  }
-}
+export function loadRoster(): RosterPlayer[] { return loadItem(ROSTER_KEY, []); }
+export function saveRoster(roster: RosterPlayer[]): void { saveItem(ROSTER_KEY, roster); }
 
 // ── Groups (named sets of roster player ids) ────────────────
 
-/** Load all player groups */
-export function loadGroups(): PlayerGroup[] {
-  try {
-    const raw = localStorage.getItem(GROUPS_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as PlayerGroup[];
-  } catch {
-    return [];
-  }
-}
-
-/** Save all player groups */
-export function saveGroups(groups: PlayerGroup[]): void {
-  try {
-    localStorage.setItem(GROUPS_KEY, JSON.stringify(groups));
-  } catch {
-    // localStorage may be unavailable
-  }
-}
+export function loadGroups(): PlayerGroup[] { return loadItem(GROUPS_KEY, []); }
+export function saveGroups(groups: PlayerGroup[]): void { saveItem(GROUPS_KEY, groups); }
 
 // ── Selected categories ──────────────────────────────────────
 
-/** Load selected categories (default: [] = all/random) */
-export function loadSelectedCategories(): string[] {
-  try {
-    const raw = localStorage.getItem(SELECTED_CATEGORIES_KEY);
-    if (!raw) return [];
-    return JSON.parse(raw) as string[];
-  } catch {
-    return [];
-  }
-}
-
-/** Save selected categories */
-export function saveSelectedCategories(categories: string[]): void {
-  try {
-    localStorage.setItem(SELECTED_CATEGORIES_KEY, JSON.stringify(categories));
-  } catch {
-    // localStorage may be unavailable
-  }
-}
+export function loadSelectedCategories(): string[] { return loadItem(SELECTED_CATEGORIES_KEY, []); }
+export function saveSelectedCategories(categories: string[]): void { saveItem(SELECTED_CATEGORIES_KEY, categories); }
 
 // ── Mr. White cannot start setting ───────────────────────────
 
-/** Load "Mr. White cannot start" setting (default: true) */
-export function loadMrWhiteCannotStart(): boolean {
-  try {
-    const raw = localStorage.getItem(MRWHITE_CANNOT_START_KEY);
-    if (raw === null) return true;
-    return JSON.parse(raw) as boolean;
-  } catch {
-    return true;
-  }
-}
-
-/** Save "Mr. White cannot start" setting */
-export function saveMrWhiteCannotStart(enabled: boolean): void {
-  try {
-    localStorage.setItem(MRWHITE_CANNOT_START_KEY, JSON.stringify(enabled));
-  } catch {
-    // localStorage may be unavailable
-  }
-}
+export function loadMrWhiteCannotStart(): boolean { return loadItem(MRWHITE_CANNOT_START_KEY, true); }
+export function saveMrWhiteCannotStart(enabled: boolean): void { saveItem(MRWHITE_CANNOT_START_KEY, enabled); }
 
 // ── Intrus config ────────────────────────────────────────────
 
-/** Load intrus count (default: 1) */
-export function loadIntrusCount(): number {
-  try {
-    const raw = localStorage.getItem(INTRUS_COUNT_KEY);
-    if (raw === null) return 1;
-    return JSON.parse(raw) as number;
-  } catch {
-    return 1;
-  }
-}
+export function loadIntrusCount(): number { return loadItem(INTRUS_COUNT_KEY, 1); }
+export function saveIntrusCount(count: number): void { saveItem(INTRUS_COUNT_KEY, count); }
 
-/** Save intrus count */
-export function saveIntrusCount(count: number): void {
-  try {
-    localStorage.setItem(INTRUS_COUNT_KEY, JSON.stringify(count));
-  } catch {
-    // localStorage may be unavailable
-  }
-}
+export function loadUndercoverEnabled(): boolean { return loadItem(UNDERCOVER_ENABLED_KEY, true); }
+export function saveUndercoverEnabled(enabled: boolean): void { saveItem(UNDERCOVER_ENABLED_KEY, enabled); }
 
-/** Load undercover enabled (default: true) */
-export function loadUndercoverEnabled(): boolean {
-  try {
-    const raw = localStorage.getItem(UNDERCOVER_ENABLED_KEY);
-    if (raw === null) return true;
-    return JSON.parse(raw) as boolean;
-  } catch {
-    return true;
-  }
-}
+export function loadMrWhiteEnabled(): boolean { return loadItem(MRWHITE_ENABLED_KEY, false); }
+export function saveMrWhiteEnabled(enabled: boolean): void { saveItem(MRWHITE_ENABLED_KEY, enabled); }
 
-/** Save undercover enabled */
-export function saveUndercoverEnabled(enabled: boolean): void {
-  try {
-    localStorage.setItem(UNDERCOVER_ENABLED_KEY, JSON.stringify(enabled));
-  } catch {
-    // localStorage may be unavailable
-  }
-}
-
-/** Load Mr. White enabled (default: false) */
-export function loadMrWhiteEnabled(): boolean {
-  try {
-    const raw = localStorage.getItem(MRWHITE_ENABLED_KEY);
-    if (raw === null) return false;
-    return JSON.parse(raw) as boolean;
-  } catch {
-    return false;
-  }
-}
-
-/** Save Mr. White enabled */
-export function saveMrWhiteEnabled(enabled: boolean): void {
-  try {
-    localStorage.setItem(MRWHITE_ENABLED_KEY, JSON.stringify(enabled));
-  } catch {
-    // localStorage may be unavailable
-  }
-}
-
-/** Load random split (default: false) */
-export function loadRandomSplit(): boolean {
-  try {
-    const raw = localStorage.getItem(RANDOM_SPLIT_KEY);
-    if (raw === null) return false;
-    return JSON.parse(raw) as boolean;
-  } catch {
-    return false;
-  }
-}
-
-/** Save random split */
-export function saveRandomSplit(enabled: boolean): void {
-  try {
-    localStorage.setItem(RANDOM_SPLIT_KEY, JSON.stringify(enabled));
-  } catch {
-    // localStorage may be unavailable
-  }
-}
+export function loadRandomSplit(): boolean { return loadItem(RANDOM_SPLIT_KEY, false); }
+export function saveRandomSplit(enabled: boolean): void { saveItem(RANDOM_SPLIT_KEY, enabled); }
 
 // ── Pair display mode ────────────────────────────────────────
 
-/** Load pair display mode (default: 'both') */
 export function loadPairDisplayMode(): PairDisplayMode {
-  try {
-    const raw = localStorage.getItem(PAIR_DISPLAY_MODE_KEY);
-    if (raw === null) return 'both';
-    const val = JSON.parse(raw) as string;
-    if (val === 'icon' || val === 'text' || val === 'both') return val;
-    return 'both';
-  } catch {
-    return 'both';
-  }
+  const val = loadItem<string>(PAIR_DISPLAY_MODE_KEY, 'both');
+  if (val === 'icon' || val === 'text' || val === 'both') return val;
+  return 'both';
 }
 
-/** Save pair display mode */
-export function savePairDisplayMode(mode: PairDisplayMode): void {
-  try {
-    localStorage.setItem(PAIR_DISPLAY_MODE_KEY, JSON.stringify(mode));
-  } catch {
-    // localStorage may be unavailable
-  }
-}
+export function savePairDisplayMode(mode: PairDisplayMode): void { saveItem(PAIR_DISPLAY_MODE_KEY, mode); }
 
 // ── Anti-cheat settings ──────────────────────────────────────
 
 export interface AntiCheatSettings {
-  /** Players can peek at their own card during discussion */
   allowPeek: boolean;
-  /** Trigger alarm before peeking at own card */
   peekAlarm: boolean;
-  /** Players can reveal all cards at once */
   allowShowAll: boolean;
-  /** Trigger alarm before revealing all cards */
   showAllAlarm: boolean;
 }
 
@@ -345,7 +131,6 @@ const ANTI_CHEAT_DEFAULTS: AntiCheatSettings = {
   showAllAlarm: true,
 };
 
-/** Load anti-cheat settings */
 export function loadAntiCheat(): AntiCheatSettings {
   try {
     const raw = localStorage.getItem(ANTI_CHEAT_KEY);
@@ -356,11 +141,4 @@ export function loadAntiCheat(): AntiCheatSettings {
   }
 }
 
-/** Save anti-cheat settings */
-export function saveAntiCheat(settings: AntiCheatSettings): void {
-  try {
-    localStorage.setItem(ANTI_CHEAT_KEY, JSON.stringify(settings));
-  } catch {
-    // localStorage may be unavailable
-  }
-}
+export function saveAntiCheat(settings: AntiCheatSettings): void { saveItem(ANTI_CHEAT_KEY, settings); }

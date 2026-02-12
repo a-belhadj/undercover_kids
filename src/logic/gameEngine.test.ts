@@ -278,15 +278,15 @@ describe('createPlayers', () => {
       expect(roleCounts.mrwhite).toBe(1);
     });
 
-    it('4 players, 1 uc, 1 mw: 2 civil, 1 undercover, 1 mrwhite', () => {
+    it('4 players, 1 uc, 1 mw: clamps mw to 0 (maxSpecial=1)', () => {
       const n = names.slice(0, 4);
       const ae = avatarEmojis.slice(0, 4);
       const ac = avatarColors.slice(0, 4);
       const players = createPlayers(n, ae, ac, pair, 1, 1);
       const roleCounts = countRoles(players);
-      expect(roleCounts.civil).toBe(2);
+      expect(roleCounts.civil).toBe(3);
       expect(roleCounts.undercover).toBe(1);
-      expect(roleCounts.mrwhite).toBe(1);
+      expect(roleCounts.mrwhite).toBe(0);
     });
 
     it('6 players, 1 uc, 1 mw: 4 civil, 1 undercover, 1 mrwhite', () => {
@@ -300,15 +300,15 @@ describe('createPlayers', () => {
       expect(roleCounts.mrwhite).toBe(1);
     });
 
-    it('8 players, 2 uc, 2 mw: 4 civil, 2 undercover, 2 mrwhite', () => {
+    it('8 players, 2 uc, 2 mw: clamps mw to 1 (maxSpecial=3)', () => {
       const n = [...names, 'Frank', 'Grace', 'Henry'];
       const ae = [...avatarEmojis, '🦁', '🐼', '🐧'];
       const ac = [...avatarColors, '#00CEC9', '#E84393', '#55A3E7'];
       const players = createPlayers(n, ae, ac, pair, 2, 2);
       const roleCounts = countRoles(players);
-      expect(roleCounts.civil).toBe(4);
+      expect(roleCounts.civil).toBe(5);
       expect(roleCounts.undercover).toBe(2);
-      expect(roleCounts.mrwhite).toBe(2);
+      expect(roleCounts.mrwhite).toBe(1);
     });
   });
 

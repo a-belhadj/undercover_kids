@@ -4,6 +4,9 @@ import { clampIntrusCounts } from '../../logic/roles';
 import { CATEGORIES, emojiPairs } from '../../data/emojiPairs';
 import { AVATAR_EMOJIS, AVATAR_COLORS } from '../../types/game';
 import { loadPlayerProfiles, savePlayerProfiles, loadDisabledPairs, loadRoster, saveRoster, loadGroups, saveGroups } from '../../lib/storage';
+import { generateId } from '../../lib/generateId';
+import { resolveGroupMembers } from '../../lib/resolveGroupMembers';
+import { useDragListeners } from '../../hooks/useDragListeners';
 import type { RosterPlayer, PlayerGroup } from '../../types/game';
 import GameLayout from '../layout/GameLayout';
 import Button from '../ui/Button';
@@ -77,9 +80,7 @@ export default function SetupScreen() {
   }, [roster]);
 
   const handleLoadGroup = (group: PlayerGroup) => {
-    const members = group.playerIds
-      .map((pid) => roster.find((r) => r.id === pid))
-      .filter(Boolean) as RosterPlayer[];
+    const members = resolveGroupMembers(group.playerIds, roster);
     const count = Math.max(3, Math.min(MAX_PLAYERS, members.length));
     setPlayerCount(count);
     setNames((prev) => {
@@ -129,7 +130,7 @@ export default function SetupScreen() {
         playerIds.push(existing.id);
       } else {
         const newPlayer: RosterPlayer = {
-          id: Math.random().toString(36).substring(2, 10),
+          id: generateId(),
           name: p.name,
           avatarEmoji: p.avatarEmoji,
           avatarColor: p.avatarColor,
@@ -145,7 +146,7 @@ export default function SetupScreen() {
     // Create the group
     const currentGroups = loadGroups();
     const newGroup: PlayerGroup = {
-      id: Math.random().toString(36).substring(2, 10),
+      id: generateId(),
       name: trimmedName,
       playerIds,
     };
@@ -161,9 +162,10 @@ export default function SetupScreen() {
   const activeAvatars = playerAvatars.slice(0, playerCount);
   const canStart = names.slice(0, playerCount).every((n) => n.trim().length > 0);
 
-  // Max special roles = floor(playerCount / 2) — civils always majority
-  // Min: at least 1 of either undercover or mrWhite
-  const maxSpecial = Math.floor(playerCount / 2);
+  // Max intrus: derived from clamp logic (single source of truth in roles.ts)
+  const maxIntrus = clampIntrusCounts(playerCount, {
+    intrusCount: playerCount, undercoverCount, mrWhiteCount, undercoverEnabled, mrWhiteEnabled, randomSplit,
+  }).intrusCount;
 
   // Save profiles to localStorage whenever names/avatars/colors change
   useEffect(() => {
@@ -241,34 +243,12 @@ export default function SetupScreen() {
     setOverIndex(null);
   }, [dragIndex, overIndex, movePlayer]);
 
-  // Global pointer/touch listeners during drag
-  useEffect(() => {
-    if (dragIndex === null) return;
+  const onDragMove = useCallback((e: PointerEvent | TouchEvent) => {
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    handleDragMove(clientY);
+  }, [handleDragMove]);
 
-    const onMove = (e: PointerEvent | TouchEvent) => {
-      e.preventDefault();
-      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-      handleDragMove(clientY);
-    };
-
-    const onEnd = () => handleDragEnd();
-
-    document.addEventListener('pointermove', onMove, { passive: false });
-    document.addEventListener('pointerup', onEnd);
-    document.addEventListener('pointercancel', onEnd);
-    document.addEventListener('touchmove', onMove, { passive: false });
-    document.addEventListener('touchend', onEnd);
-    document.addEventListener('touchcancel', onEnd);
-
-    return () => {
-      document.removeEventListener('pointermove', onMove);
-      document.removeEventListener('pointerup', onEnd);
-      document.removeEventListener('pointercancel', onEnd);
-      document.removeEventListener('touchmove', onMove);
-      document.removeEventListener('touchend', onEnd);
-      document.removeEventListener('touchcancel', onEnd);
-    };
-  }, [dragIndex, handleDragMove, handleDragEnd]);
+  useDragListeners(dragIndex !== null, onDragMove, handleDragEnd);
 
   const handleStart = () => {
     const trimmed = names.slice(0, playerCount).map((n) => n.trim());
@@ -391,7 +371,7 @@ export default function SetupScreen() {
           <button
             className={styles.stepperBtn}
             onClick={() => setIntrusCount(intrusCount + 1)}
-            disabled={intrusCount >= maxSpecial}
+            disabled={intrusCount >= maxIntrus}
           >
             +
           </button>
@@ -566,9 +546,7 @@ export default function SetupScreen() {
           <div className={styles.groupPickerSheet} onClick={(e) => e.stopPropagation()}>
             <div className={styles.groupPickerTitle}>Charger un groupe</div>
             {groups.map((g) => {
-              const members = g.playerIds
-                .map((pid) => roster.find((r) => r.id === pid))
-                .filter(Boolean) as RosterPlayer[];
+              const members = resolveGroupMembers(g.playerIds, roster);
               return (
                 <button
                   key={g.id}

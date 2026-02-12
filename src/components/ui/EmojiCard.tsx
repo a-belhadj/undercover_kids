@@ -1,4 +1,5 @@
 import { isImageUrl } from '../../lib/isImageUrl';
+import { cn } from '../../lib/cn';
 import styles from './EmojiCard.module.css';
 
 interface EmojiCardProps {
@@ -20,16 +21,14 @@ export default function EmojiCard({
   className = '',
   onClick,
 }: EmojiCardProps) {
-  const classes = [
+  const classes = cn(
     styles.card,
-    large ? styles.large : '',
-    selectable ? styles.selectable : '',
-    selected ? styles.selected : '',
-    mystery ? styles.mystery : '',
+    large && styles.large,
+    selectable && styles.selectable,
+    selected && styles.selected,
+    mystery && styles.mystery,
     className,
-  ]
-    .filter(Boolean)
-    .join(' ');
+  );
 
   return (
     <div

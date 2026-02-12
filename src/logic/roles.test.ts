@@ -7,28 +7,28 @@ describe('getRoleDistribution', () => {
       expect(getRoleDistribution(3, 1, 0)).toEqual({ civil: 2, undercover: 1, mrwhite: 0 });
     });
 
-    it('4 players, 1 undercover, 1 mrWhite → 2 civil', () => {
-      expect(getRoleDistribution(4, 1, 1)).toEqual({ civil: 2, undercover: 1, mrwhite: 1 });
+    it('4 players, 1 undercover, 1 mrWhite → clamps mw to 0 (maxSpecial=1)', () => {
+      expect(getRoleDistribution(4, 1, 1)).toEqual({ civil: 3, undercover: 1, mrwhite: 0 });
     });
 
     it('5 players, 1 undercover, 1 mrWhite → 3 civil', () => {
       expect(getRoleDistribution(5, 1, 1)).toEqual({ civil: 3, undercover: 1, mrwhite: 1 });
     });
 
-    it('6 players, 2 undercover, 1 mrWhite → 3 civil', () => {
-      expect(getRoleDistribution(6, 2, 1)).toEqual({ civil: 3, undercover: 2, mrwhite: 1 });
+    it('6 players, 2 undercover, 1 mrWhite → clamps mw to 0 (maxSpecial=2)', () => {
+      expect(getRoleDistribution(6, 2, 1)).toEqual({ civil: 4, undercover: 2, mrwhite: 0 });
     });
 
-    it('8 players, 2 undercover, 2 mrWhite → 4 civil', () => {
-      expect(getRoleDistribution(8, 2, 2)).toEqual({ civil: 4, undercover: 2, mrwhite: 2 });
+    it('8 players, 2 undercover, 2 mrWhite → clamps mw to 1 (maxSpecial=3)', () => {
+      expect(getRoleDistribution(8, 2, 2)).toEqual({ civil: 5, undercover: 2, mrwhite: 1 });
     });
 
-    it('10 players, 3 undercover, 2 mrWhite → 5 civil', () => {
-      expect(getRoleDistribution(10, 3, 2)).toEqual({ civil: 5, undercover: 3, mrwhite: 2 });
+    it('10 players, 3 undercover, 2 mrWhite → clamps mw to 1 (maxSpecial=4)', () => {
+      expect(getRoleDistribution(10, 3, 2)).toEqual({ civil: 6, undercover: 3, mrwhite: 1 });
     });
 
-    it('16 players, 4 undercover, 4 mrWhite → 8 civil', () => {
-      expect(getRoleDistribution(16, 4, 4)).toEqual({ civil: 8, undercover: 4, mrwhite: 4 });
+    it('16 players, 4 undercover, 4 mrWhite → clamps mw to 3 (maxSpecial=7)', () => {
+      expect(getRoleDistribution(16, 4, 4)).toEqual({ civil: 9, undercover: 4, mrwhite: 3 });
     });
   });
 
@@ -56,9 +56,9 @@ describe('getRoleDistribution', () => {
     });
   });
 
-  describe('clamping: never more than half special roles', () => {
-    it('4 players, 3 undercover, 0 mrWhite → clamps to 2 undercover', () => {
-      expect(getRoleDistribution(4, 3, 0)).toEqual({ civil: 2, undercover: 2, mrwhite: 0 });
+  describe('clamping: civilians always strict majority', () => {
+    it('4 players, 3 undercover, 0 mrWhite → clamps to 1 undercover (maxSpecial=1)', () => {
+      expect(getRoleDistribution(4, 3, 0)).toEqual({ civil: 3, undercover: 1, mrwhite: 0 });
     });
 
     it('5 players, 5 undercover, 5 mrWhite → clamps to 2 uc + 0 mw', () => {
@@ -241,8 +241,8 @@ describe('clampIntrusCounts', () => {
       intrusCount: 5, undercoverEnabled: true, mrWhiteEnabled: false,
       randomSplit: false, undercoverCount: 5, mrWhiteCount: 0,
     });
-    expect(result.intrusCount).toBe(2);
-    expect(result.undercoverCount).toBe(2);
+    expect(result.intrusCount).toBe(1);
+    expect(result.undercoverCount).toBe(1);
     expect(result.mrWhiteCount).toBe(0);
   });
 

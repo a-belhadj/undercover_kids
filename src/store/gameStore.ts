@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { GameState, GamePhase, PairDisplayMode, CheatLog } from '../types/game';
+import type { GameState, GamePhase, PairDisplayMode, Player, CheatLog } from '../types/game';
 import { pickPair, createPlayers, buildSpeakingOrder, checkGameOver } from '../logic/gameEngine';
 import { computeFinalCounts } from '../logic/roles';
 import { savePlayerProfiles, loadUndercoverCount, saveUndercoverCount, loadMrWhiteCount, saveMrWhiteCount, loadDisabledPairs, saveDisabledPairs, loadEasyMode, saveEasyMode, loadSelectedCategories, saveSelectedCategories, loadMrWhiteCannotStart, saveMrWhiteCannotStart, loadAntiCheat, saveAntiCheat, loadIntrusCount, saveIntrusCount, loadUndercoverEnabled, saveUndercoverEnabled, loadMrWhiteEnabled, saveMrWhiteEnabled, loadRandomSplit, saveRandomSplit, loadPairDisplayMode, savePairDisplayMode } from '../lib/storage';
@@ -40,6 +40,14 @@ interface GameActions {
 
   // Cheat tracking
   updateCheatLog: (log: CheatLog) => void;
+}
+
+function extractPlayerProps(players: Player[]) {
+  return {
+    names: players.map((p) => p.name),
+    emojis: players.map((p) => p.avatarEmoji),
+    colors: players.map((p) => p.avatarColor),
+  };
 }
 
 const initialState: GameState = {
@@ -195,9 +203,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     const state = get();
     const { players, selectedCategories, mrWhiteCannotStart } = state;
     const { finalUC, finalMW } = computeFinalCounts(state);
-    const names = players.map((p) => p.name);
-    const emojis = players.map((p) => p.avatarEmoji);
-    const colors = players.map((p) => p.avatarColor);
+    const { names, emojis, colors } = extractPlayerProps(players);
     const disabledPairs = loadDisabledPairs();
     const pair = pickPair(selectedCategories, disabledPairs);
     const newPlayers = createPlayers(names, emojis, colors, pair, finalUC, finalMW);
@@ -231,9 +237,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     }
     // Restart with same players but a new pair
     // If firstPlayerIndex is set, rotate the player order so that player sees their card first
-    let names = players.map((p) => p.name);
-    let emojis = players.map((p) => p.avatarEmoji);
-    let colors = players.map((p) => p.avatarColor);
+    let { names, emojis, colors } = extractPlayerProps(players);
     if (firstPlayerIndex != null && firstPlayerIndex > 0 && firstPlayerIndex < players.length) {
       const rotate = <T,>(arr: T[]) => [...arr.slice(firstPlayerIndex), ...arr.slice(0, firstPlayerIndex)];
       names = rotate(names);

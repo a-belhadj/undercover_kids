@@ -1,5 +1,6 @@
 import styles from './PlayerAvatar.module.css';
 import { isImageUrl } from '../../lib/isImageUrl';
+import { cn } from '../../lib/cn';
 
 /** Renders an emoji character or an <img> if the value is a URL. */
 export function AvatarEmoji({ value, size = 20 }: { value: string; size?: number }) {
@@ -26,13 +27,11 @@ export default function PlayerAvatar({
   highlighted = false,
   onClick,
 }: PlayerAvatarProps) {
-  const classes = [
+  const classes = cn(
     styles.avatar,
     styles[size],
-    highlighted ? 'highlight-ring' : '',
-  ]
-    .filter(Boolean)
-    .join(' ');
+    highlighted && 'highlight-ring',
+  );
 
   const avatar = (
     <div

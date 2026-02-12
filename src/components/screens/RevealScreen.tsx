@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
+import { useScrollToTop } from '../../hooks/useScrollToTop';
 import GameLayout from '../layout/GameLayout';
 import Button from '../ui/Button';
 import PlayerAvatar from '../ui/PlayerAvatar';
@@ -15,9 +16,7 @@ function RevealCard() {
 
   const player = players[currentPlayerIndex];
 
-  useEffect(() => {
-    document.getElementById('root')?.scrollTo(0, 0);
-  }, []);
+  useScrollToTop();
 
   const handleReveal = () => setRevealed(true);
   const handleNext = () => {

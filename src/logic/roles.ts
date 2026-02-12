@@ -1,4 +1,5 @@
 import type { Role } from '../types/game';
+import { shuffle } from '../lib/shuffle';
 
 interface RoleDistribution {
   civil: number;
@@ -16,8 +17,8 @@ export function getRoleDistribution(
   undercoverCount: number,
   mrWhiteCount: number,
 ): RoleDistribution {
-  // Clamp special roles: never more than half the players
-  const maxSpecial = Math.floor(playerCount / 2);
+  // Clamp special roles: civilians must be the strict majority (at least half+1)
+  const maxSpecial = Math.floor((playerCount - 1) / 2);
   const uc = Math.max(0, Math.min(undercoverCount, maxSpecial));
   const mw = Math.max(0, Math.min(mrWhiteCount, maxSpecial - uc));
   const civil = playerCount - uc - mw;
@@ -65,7 +66,7 @@ export function clampIntrusCounts(
   config: IntrusConfig,
 ): { intrusCount: number; undercoverCount: number; mrWhiteCount: number } {
   const { undercoverEnabled, mrWhiteEnabled, randomSplit } = config;
-  const maxSpecial = Math.floor(playerCount / 2);
+  const maxSpecial = Math.floor((playerCount - 1) / 2);
   const ic = Math.max(1, Math.min(config.intrusCount, maxSpecial));
 
   if (!mrWhiteEnabled) {
@@ -100,11 +101,5 @@ export function assignRoles(
     ...Array<Role>(dist.mrwhite).fill('mrwhite'),
   ];
 
-  // Fisher-Yates shuffle
-  for (let i = roles.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [roles[i], roles[j]] = [roles[j], roles[i]];
-  }
-
-  return roles;
+  return shuffle(roles);
 }

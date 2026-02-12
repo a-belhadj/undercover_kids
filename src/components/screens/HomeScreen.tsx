@@ -1,5 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useGameStore } from '../../store/gameStore';
+import { useScrollToTop } from '../../hooks/useScrollToTop';
 import GameLayout from '../layout/GameLayout';
 import Button from '../ui/Button';
 import Settings from './Settings';
@@ -19,10 +20,7 @@ export default function HomeScreen() {
   const [ruleIndex, setRuleIndex] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
 
-  // Reset scroll when entering this screen (e.g. coming from a scrolled DiscussionScreen)
-  useEffect(() => {
-    document.getElementById('root')?.scrollTo(0, 0);
-  }, []);
+  useScrollToTop();
 
   return (
     <GameLayout fit>
