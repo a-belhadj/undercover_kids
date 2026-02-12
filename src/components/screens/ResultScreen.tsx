@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useGameStore } from '../../store/gameStore';
 import GameLayout from '../layout/GameLayout';
 import Button from '../ui/Button';
@@ -12,9 +13,18 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 export default function ResultScreen() {
-  const { players, winner, pairDisplayMode, restartWithSamePlayers, goHome } = useGameStore();
+  const { players, winner, pairDisplayMode, cheatLog, restartWithSamePlayers, goHome } = useGameStore();
 
   const isCivilWin = winner === 'civil';
+
+  const cheatSummary = useMemo(() => {
+    const { peekCounts, showAllCount } = cheatLog;
+    const peeks = players
+      .map((p, i) => ({ player: p, count: peekCounts[i] || 0 }))
+      .filter((e) => e.count > 0);
+    const hasCheat = peeks.length > 0 || showAllCount > 0;
+    return { peeks, showAllCount, hasCheat };
+  }, [cheatLog, players]);
 
   return (
     <GameLayout title="Fin de partie">
@@ -62,6 +72,34 @@ export default function ResultScreen() {
             )}
           </div>
         ))}
+      </div>
+
+      {/* Cheat summary */}
+      <div className={styles.cheatSection}>
+        <div className={styles.cheatTitle}>Bilan anti-triche</div>
+        {!cheatSummary.hasCheat ? (
+          <div className={styles.cheatClean}>Aucune carte consultée pendant la partie</div>
+        ) : (
+          <div className={styles.cheatDetails}>
+            {cheatSummary.showAllCount > 0 && (
+              <div className={styles.cheatRow}>
+                <span className={styles.cheatIcon}>👀</span>
+                <span>Toutes les cartes révélées <strong>{cheatSummary.showAllCount} fois</strong></span>
+              </div>
+            )}
+            {cheatSummary.peeks.map((e) => (
+              <div key={e.player.id} className={styles.cheatRow}>
+                <span className={styles.cheatIcon}>👁️</span>
+                <PlayerAvatar
+                  emoji={e.player.avatarEmoji}
+                  color={e.player.avatarColor}
+                  size="small"
+                />
+                <span><strong>{e.player.name}</strong> a revu sa carte <strong>{e.count} fois</strong></span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className={styles.actions}>

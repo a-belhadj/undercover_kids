@@ -39,6 +39,7 @@ const initialState = {
   currentPlayerIndex: 0,
   speakingOrder: [],
   winner: null,
+  cheatLog: { peekCounts: {}, showAllCount: 0 },
   undercoverCount: 1,
   mrWhiteCount: 0,
   intrusCount: 1,

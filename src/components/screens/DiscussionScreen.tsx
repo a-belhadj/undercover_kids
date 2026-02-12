@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useMemo } from 'react';
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useGameStore } from '../../store/gameStore';
 import { playAlarm, triggerVibration, flashTorch, ALARM_DURATION } from '../../lib/alarm';
@@ -22,7 +22,7 @@ type PeekState =
   | { step: 'revealed'; playerIndex: number };
 
 export default function DiscussionScreen() {
-  const { players, speakingOrder, restartWithSamePlayers, goHome, antiCheat, easyMode, pairDisplayMode, eliminatePlayer } = useGameStore();
+  const { players, speakingOrder, restartWithSamePlayers, goHome, antiCheat, easyMode, pairDisplayMode, eliminatePlayer, updateCheatLog } = useGameStore();
   const [showAll, setShowAll] = useState(false);
   const [alarming, setAlarming] = useState(false);
   const alarmRef = useRef<{ stop: () => void } | null>(null);
@@ -43,6 +43,11 @@ export default function DiscussionScreen() {
 
   // Track how many times "Voir les cartes" was used
   const [showCardsCount, setShowCardsCount] = useState(0);
+
+  // Sync cheat data to the store so ResultScreen can display it
+  useEffect(() => {
+    updateCheatLog({ peekCounts, showAllCount: showCardsCount });
+  }, [peekCounts, showCardsCount, updateCheatLog]);
 
   const anyPeeked = useMemo(
     () => players.some((_, i) => peekCounts[i] > 0) || showCardsCount > 0,

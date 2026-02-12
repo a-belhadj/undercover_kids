@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { GameState, GamePhase, PairDisplayMode } from '../types/game';
+import type { GameState, GamePhase, PairDisplayMode, CheatLog } from '../types/game';
 import { pickPair, createPlayers, buildSpeakingOrder, checkGameOver } from '../logic/gameEngine';
 import { computeFinalCounts } from '../logic/roles';
 import { savePlayerProfiles, loadUndercoverCount, saveUndercoverCount, loadMrWhiteCount, saveMrWhiteCount, loadDisabledPairs, saveDisabledPairs, loadEasyMode, saveEasyMode, loadSelectedCategories, saveSelectedCategories, loadMrWhiteCannotStart, saveMrWhiteCannotStart, loadAntiCheat, saveAntiCheat, loadIntrusCount, saveIntrusCount, loadUndercoverEnabled, saveUndercoverEnabled, loadMrWhiteEnabled, saveMrWhiteEnabled, loadRandomSplit, saveRandomSplit, loadPairDisplayMode, savePairDisplayMode } from '../lib/storage';
@@ -37,6 +37,9 @@ interface GameActions {
 
   // Elimination
   eliminatePlayer: (playerIndex: number) => void;
+
+  // Cheat tracking
+  updateCheatLog: (log: CheatLog) => void;
 }
 
 const initialState: GameState = {
@@ -46,6 +49,7 @@ const initialState: GameState = {
   currentPlayerIndex: 0,
   speakingOrder: [],
   winner: null,
+  cheatLog: { peekCounts: {}, showAllCount: 0 },
   undercoverCount: loadUndercoverCount(),
   mrWhiteCount: loadMrWhiteCount(),
   intrusCount: loadIntrusCount(),
@@ -77,6 +81,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     currentPlayerIndex: 0,
     speakingOrder: [],
     winner: null,
+    cheatLog: { peekCounts: {}, showAllCount: 0 },
     undercoverCount: get().undercoverCount,
     mrWhiteCount: get().mrWhiteCount,
     intrusCount: get().intrusCount,
@@ -172,6 +177,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       currentPlayerIndex: 0,
       speakingOrder,
       winner: null,
+      cheatLog: { peekCounts: {}, showAllCount: 0 },
     });
   },
 
@@ -207,6 +213,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       currentPlayerIndex: 0,
       speakingOrder,
       winner: null,
+      cheatLog: { peekCounts: {}, showAllCount: 0 },
     });
   },
 
@@ -244,6 +251,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       currentPlayerIndex: 0,
       speakingOrder,
       winner: null,
+      cheatLog: { peekCounts: {}, showAllCount: 0 },
     });
   },
 
@@ -259,4 +267,6 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       set({ players: updated });
     }
   },
+
+  updateCheatLog: (log) => set({ cheatLog: log }),
 }));

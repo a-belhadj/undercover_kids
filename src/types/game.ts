@@ -31,6 +31,11 @@ export interface EmojiPair {
   undercoverLabel: string;
 }
 
+export interface CheatLog {
+  peekCounts: Record<number, number>;
+  showAllCount: number;
+}
+
 export interface GameState {
   phase: GamePhase;
   players: Player[];
@@ -38,6 +43,7 @@ export interface GameState {
   currentPlayerIndex: number;
   speakingOrder: number[];
   winner: Winner | null;
+  cheatLog: CheatLog;
   undercoverCount: number;
   mrWhiteCount: number;
   intrusCount: number;
