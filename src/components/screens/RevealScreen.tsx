@@ -3,7 +3,7 @@ import { useGameStore } from '../../store/gameStore';
 import GameLayout from '../layout/GameLayout';
 import Button from '../ui/Button';
 import PlayerAvatar from '../ui/PlayerAvatar';
-import EmojiCard from '../ui/EmojiCard';
+import PlayerCardReveal from '../ui/PlayerCardReveal';
 import styles from './RevealScreen.module.css';
 
 export default function RevealScreen() {
@@ -57,40 +57,13 @@ export default function RevealScreen() {
         </>
       ) : (
         <>
-          {player.role === 'mrwhite' ? (
-            <>
-              <div className={styles.emojiDisplay}>
-                <EmojiCard emoji="❓" large mystery />
-              </div>
-              <span className={`${styles.roleTag} ${styles.mrwhite}`}>
-                Tu es Mr. White ! Bluff ! 🎩
-              </span>
-            </>
-          ) : (
-            <>
-              {pairDisplayMode !== 'text' && (
-                <div className={`${styles.emojiDisplay} emoji-reveal`}>
-                  <EmojiCard emoji={player.emoji!} large />
-                </div>
-              )}
-              {pairDisplayMode !== 'icon' && player.emojiLabel && (
-                <div className={styles.emojiLabel}>{player.emojiLabel}</div>
-              )}
-              <span
-                className={`${styles.roleTag} ${
-                  easyMode
-                    ? player.role === 'civil' ? styles.civil : styles.undercover
-                    : styles.neutral
-                }`}
-              >
-                {easyMode
-                  ? player.role === 'civil'
-                    ? 'Tu es Civil ! 🟢'
-                    : 'Tu es Undercover ! 🥷'
-                  : 'Mémorise bien ton image !'}
-              </span>
-            </>
-          )}
+          <PlayerCardReveal
+            role={player.role}
+            emoji={player.emoji}
+            emojiLabel={player.emojiLabel}
+            easyMode={easyMode}
+            pairDisplayMode={pairDisplayMode}
+          />
           <Button variant="success" size="large" icon="✅" onClick={handleNext}>
             J'ai vu !
           </Button>

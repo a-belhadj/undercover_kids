@@ -1,9 +1,11 @@
 import { useState, useRef, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useGameStore } from '../../store/gameStore';
+import { playAlarm, triggerVibration, flashTorch, ALARM_DURATION } from '../../lib/alarm';
 import GameLayout from '../layout/GameLayout';
 import Button from '../ui/Button';
 import PlayerAvatar from '../ui/PlayerAvatar';
+import PlayerCardReveal from '../ui/PlayerCardReveal';
 import EmojiCard from '../ui/EmojiCard';
 import styles from './DiscussionScreen.module.css';
 
@@ -13,98 +15,10 @@ const ROLE_LABELS: Record<string, string> = {
   mrwhite: 'Mr. White',
 };
 
-/** Play an alarm sound using Web Audio API (no file needed) */
-function playAlarm(duration = 1500): { stop: () => void } {
-  try {
-    const ctx = new AudioContext();
-    const gain = ctx.createGain();
-    gain.gain.value = 0.35;
-    gain.connect(ctx.destination);
-
-    const osc1 = ctx.createOscillator();
-    osc1.type = 'square';
-    osc1.frequency.value = 800;
-    osc1.connect(gain);
-    osc1.start();
-
-    const osc2 = ctx.createOscillator();
-    osc2.type = 'square';
-    osc2.frequency.value = 600;
-    osc2.connect(gain);
-    osc2.start();
-
-    // Alternate between two tones for siren effect
-    const interval = setInterval(() => {
-      const t = ctx.currentTime;
-      osc1.frequency.setValueAtTime(osc1.frequency.value === 800 ? 600 : 800, t);
-      osc2.frequency.setValueAtTime(osc2.frequency.value === 600 ? 800 : 600, t);
-    }, 200);
-
-    const stop = () => {
-      clearInterval(interval);
-      osc1.stop();
-      osc2.stop();
-      ctx.close();
-    };
-
-    setTimeout(stop, duration);
-    return { stop };
-  } catch {
-    return { stop: () => {} };
-  }
-}
-
-/** Trigger vibration pattern */
-function triggerVibration() {
-  try {
-    // Pattern: vibrate 200ms, pause 100ms, repeated
-    navigator.vibrate([200, 100, 200, 100, 200, 100, 200, 100, 200]);
-  } catch {
-    // Vibration API not available
-  }
-}
-
-/** Flash the phone's torch LED (Android Chrome only, fails silently elsewhere) */
-async function flashTorch(duration = 1500): Promise<() => void> {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment' },
-    });
-    const track = stream.getVideoTracks()[0];
-    // Check torch support
-    const capabilities = track.getCapabilities?.();
-    if (!capabilities || !(capabilities as Record<string, unknown>)['torch']) {
-      track.stop();
-      return () => {};
-    }
-
-    // Blink pattern: 200ms on, 150ms off
-    let stopped = false;
-    const blink = async () => {
-      while (!stopped) {
-        await track.applyConstraints({ advanced: [{ torch: true } as MediaTrackConstraintSet] });
-        await new Promise((r) => setTimeout(r, 200));
-        if (stopped) break;
-        await track.applyConstraints({ advanced: [{ torch: false } as MediaTrackConstraintSet] });
-        await new Promise((r) => setTimeout(r, 150));
-      }
-    };
-    blink();
-
-    const stop = () => {
-      stopped = true;
-      track.stop();
-    };
-
-    setTimeout(stop, duration);
-    return stop;
-  } catch {
-    // Permission denied or API not available — silent fail
-    return () => {};
-  }
-}
-
-const ALARM_DURATION = 1500;
+type PeekState =
+  | { step: 'closed' }
+  | { step: 'confirm'; playerIndex: number }
+  | { step: 'revealed'; playerIndex: number };
 
 export default function DiscussionScreen() {
   const { players, speakingOrder, restartWithSamePlayers, goHome, antiCheat, easyMode, pairDisplayMode } = useGameStore();
@@ -112,10 +26,8 @@ export default function DiscussionScreen() {
   const [alarming, setAlarming] = useState(false);
   const alarmRef = useRef<{ stop: () => void } | null>(null);
 
-  // Full-screen peek overlay state (index of the player being peeked, or null)
-  const [peekingPlayer, setPeekingPlayer] = useState<number | null>(null);
-  // Whether the peek overlay is in confirmation step (true) or showing the card (false)
-  const [peekConfirm, setPeekConfirm] = useState(true);
+  // Full-screen peek overlay state
+  const [peekState, setPeekState] = useState<PeekState>({ step: 'closed' });
   // Show all cards confirmation state
   const [showAllConfirm, setShowAllConfirm] = useState(false);
 
@@ -183,16 +95,16 @@ export default function DiscussionScreen() {
 
   /** Peek at a single player's card — opens full-screen overlay in confirmation step */
   const handlePeek = useCallback((playerIndex: number) => {
-    setPeekingPlayer(playerIndex);
-    setPeekConfirm(true);
+    setPeekState({ step: 'confirm', playerIndex });
   }, []);
 
   /** Confirm peek — trigger alarm if needed, then show the card */
   const confirmPeek = useCallback(() => {
-    if (peekingPlayer === null) return;
+    if (peekState.step !== 'confirm') return;
+    const { playerIndex } = peekState;
     const reveal = () => {
-      setPeekCounts((prev) => ({ ...prev, [peekingPlayer]: (prev[peekingPlayer] || 0) + 1 }));
-      setPeekConfirm(false);
+      setPeekCounts((prev) => ({ ...prev, [playerIndex]: (prev[playerIndex] || 0) + 1 }));
+      setPeekState({ step: 'revealed', playerIndex });
     };
 
     if (antiCheat.peekAlarm) {
@@ -200,12 +112,11 @@ export default function DiscussionScreen() {
     } else {
       reveal();
     }
-  }, [peekingPlayer, antiCheat.peekAlarm, triggerAlarm]);
+  }, [peekState, antiCheat.peekAlarm, triggerAlarm]);
 
   /** Close the peek overlay */
   const closePeek = useCallback(() => {
-    setPeekingPlayer(null);
-    setPeekConfirm(true);
+    setPeekState({ step: 'closed' });
   }, []);
 
 
@@ -275,17 +186,17 @@ export default function DiscussionScreen() {
       </div>
 
       {/* Full-screen peek overlay */}
-      {peekingPlayer !== null && createPortal(
-        <div className={styles.peekOverlay} onClick={peekConfirm ? closePeek : closePeek}>
+      {peekState.step !== 'closed' && createPortal(
+        <div className={styles.peekOverlay} onClick={closePeek}>
           <div className={styles.peekContent} onClick={(e) => e.stopPropagation()}>
             <PlayerAvatar
-              emoji={players[peekingPlayer].avatarEmoji}
-              color={players[peekingPlayer].avatarColor}
+              emoji={players[peekState.playerIndex].avatarEmoji}
+              color={players[peekState.playerIndex].avatarColor}
               size="large"
             />
-            <div className={styles.peekName}>{players[peekingPlayer].name}</div>
+            <div className={styles.peekName}>{players[peekState.playerIndex].name}</div>
 
-            {peekConfirm ? (
+            {peekState.step === 'confirm' ? (
               <>
                 <div className={styles.peekInstruction}>
                   Retourne le téléphone vers toi
@@ -297,40 +208,13 @@ export default function DiscussionScreen() {
               </>
             ) : (
               <div className={styles.peekCardArea} onClick={closePeek}>
-                {players[peekingPlayer].role === 'mrwhite' ? (
-                  <>
-                    <div className={styles.peekEmoji}>
-                      <EmojiCard emoji="❓" large mystery />
-                    </div>
-                    <span className={styles.peekRoleTag + ' ' + styles.peekRoleMrwhite}>
-                      Tu es Mr. White ! Bluff ! 🎩
-                    </span>
-                  </>
-                ) : (
-                  <>
-                    {pairDisplayMode !== 'text' && (
-                      <div className={`${styles.peekEmoji} emoji-reveal`}>
-                        <EmojiCard emoji={players[peekingPlayer].emoji!} large />
-                      </div>
-                    )}
-                    {pairDisplayMode !== 'icon' && players[peekingPlayer].emojiLabel && (
-                      <div className={styles.peekEmojiLabel}>{players[peekingPlayer].emojiLabel}</div>
-                    )}
-                    <span
-                      className={`${styles.peekRoleTag} ${
-                        easyMode
-                          ? players[peekingPlayer].role === 'civil' ? styles.peekRoleCivil : styles.peekRoleUndercover
-                          : styles.peekRoleNeutral
-                      }`}
-                    >
-                      {easyMode
-                        ? players[peekingPlayer].role === 'civil'
-                          ? 'Tu es Civil ! 🟢'
-                          : 'Tu es Undercover ! 🥷'
-                        : 'Mémorise bien ton image !'}
-                    </span>
-                  </>
-                )}
+                <PlayerCardReveal
+                  role={players[peekState.playerIndex].role}
+                  emoji={players[peekState.playerIndex].emoji}
+                  emojiLabel={players[peekState.playerIndex].emojiLabel}
+                  easyMode={easyMode}
+                  pairDisplayMode={pairDisplayMode}
+                />
 
                 <button className={styles.peekCloseBtn} onClick={closePeek}>
                   ✅ J'ai vu !

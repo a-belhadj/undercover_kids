@@ -231,44 +231,6 @@
   color: var(--color-primary);
 }
 
-.peekEmoji {
-  margin: 0.25rem 0;
-}
-
-.peekEmojiLabel {
-  font-size: min(1.1rem, 3vh);
-  font-weight: 700;
-  color: var(--color-text);
-}
-
-.peekRoleTag {
-  font-size: min(1rem, 2.8vh);
-  font-weight: 600;
-  padding: 0.4rem 1rem;
-  border-radius: 20px;
-  display: inline-block;
-}
-
-.peekRoleCivil {
-  background: rgba(0, 184, 148, 0.12);
-  color: var(--color-success);
-}
-
-.peekRoleUndercover {
-  background: rgba(225, 112, 85, 0.12);
-  color: var(--color-danger);
-}
-
-.peekRoleMrwhite {
-  background: rgba(178, 190, 195, 0.2);
-  color: #636e72;
-}
-
-.peekRoleNeutral {
-  background: rgba(255, 165, 0, 0.12);
-  color: #e67e00;
-}
-
 .peekInstruction {
   font-size: min(1.15rem, 3vh);
   color: var(--color-text-light);
