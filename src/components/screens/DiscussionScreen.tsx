@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useMemo, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useGameStore } from '../../store/gameStore';
-import { playAlarm, triggerVibration, flashTorch, ALARM_DURATION } from '../../lib/alarm';
+import { playAlarm, triggerVibration, flashTorch, ALARM_DURATION, playVictorySound, playDefeatSound } from '../../lib/alarm';
 import GameLayout from '../layout/GameLayout';
 import Button from '../ui/Button';
 import PlayerAvatar from '../ui/PlayerAvatar';
@@ -350,6 +350,12 @@ export default function DiscussionScreen() {
                   <button
                     className={styles.voteConfirmBtn}
                     onClick={() => {
+                      const role = players[voteTarget].role;
+                      if (role === 'undercover' || role === 'mrwhite') {
+                        playVictorySound();
+                      } else {
+                        playDefeatSound();
+                      }
                       eliminatePlayer(voteTarget);
                       setVoteTarget(null);
                     }}

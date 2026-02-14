@@ -41,6 +41,54 @@ export function playAlarm(duration = 1500): { stop: () => void } {
   }
 }
 
+/** Play a victory jingle (ascending notes) */
+export function playVictorySound(): void {
+  try {
+    const ctx = new AudioContext();
+    const gain = ctx.createGain();
+    gain.gain.value = 0.3;
+    gain.connect(ctx.destination);
+
+    const notes = [523, 659, 784, 1047]; // C5, E5, G5, C6
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      osc.type = 'triangle';
+      osc.frequency.value = freq;
+      osc.connect(gain);
+      osc.start(ctx.currentTime + i * 0.15);
+      osc.stop(ctx.currentTime + i * 0.15 + 0.2);
+    });
+
+    setTimeout(() => ctx.close(), 1000);
+  } catch {
+    // Web Audio not available
+  }
+}
+
+/** Play a defeat sound (descending sad notes) */
+export function playDefeatSound(): void {
+  try {
+    const ctx = new AudioContext();
+    const gain = ctx.createGain();
+    gain.gain.value = 0.3;
+    gain.connect(ctx.destination);
+
+    const notes = [440, 370, 311]; // A4, F#4, Eb4
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      osc.connect(gain);
+      osc.start(ctx.currentTime + i * 0.3);
+      osc.stop(ctx.currentTime + i * 0.3 + 0.35);
+    });
+
+    setTimeout(() => ctx.close(), 1500);
+  } catch {
+    // Web Audio not available
+  }
+}
+
 /** Trigger vibration pattern */
 export function triggerVibration() {
   try {
