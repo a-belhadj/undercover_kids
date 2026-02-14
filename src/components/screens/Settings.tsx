@@ -476,7 +476,7 @@ export default function Settings({ onClose }: SettingsProps) {
                           });
                         }}
                       >
-                        <span className={styles.selectPlayerEmoji}>{p.avatarEmoji}</span>
+                        <span className={styles.selectPlayerEmoji}><AvatarEmoji value={p.avatarEmoji} size={16} /></span>
                         {p.name}
                       </button>
                     );
@@ -574,7 +574,7 @@ export default function Settings({ onClose }: SettingsProps) {
                         });
                       }}
                     >
-                      <span className={styles.selectPlayerEmoji}>{p.avatarEmoji}</span>
+                      <span className={styles.selectPlayerEmoji}><AvatarEmoji value={p.avatarEmoji} size={16} /></span>
                       {p.name}
                     </button>
                   );
