@@ -14,6 +14,7 @@ export const CATEGORIES = [
   { id: 'house', label: 'Maison', icon: '🏠' },
   { id: 'emotions', label: 'Émotions', icon: '😊' },
   { id: 'body', label: 'Corps humain', icon: '🫀' },
+  { id: 'carbrands', label: 'Marques de voitures', icon: '🏎️' },
 ] as const;
 
 export const emojiPairs: EmojiPair[] = [
@@ -146,7 +147,6 @@ export const emojiPairs: EmojiPair[] = [
   { id: 'h3', category: 'heroes', civil: 'https://img.icons8.com/color/96/hulk.png', undercover: 'https://img.icons8.com/color/96/thanos.png', civilLabel: 'Hulk', undercoverLabel: 'Thanos' },
   { id: 'h4', category: 'heroes', civil: 'https://img.icons8.com/color/96/deadpool.png', undercover: 'https://img.icons8.com/color/96/wolverine.png', civilLabel: 'Deadpool', undercoverLabel: 'Wolverine' },
   { id: 'h5', category: 'heroes', civil: 'https://img.icons8.com/color/96/groot.png', undercover: 'https://img.icons8.com/color/96/hulk.png', civilLabel: 'Groot', undercoverLabel: 'Hulk' },
-  { id: 'h6', category: 'heroes', civil: 'https://img.icons8.com/color/96/thor.png', undercover: 'https://img.icons8.com/color/96/aquaman.png', civilLabel: 'Thor', undercoverLabel: 'Aquaman' },
   { id: 'h7', category: 'heroes', civil: 'https://img.icons8.com/color/96/black-widow.png', undercover: 'https://img.icons8.com/color/96/hawkeye.png', civilLabel: 'Black Widow', undercoverLabel: 'Hawkeye' },
   { id: 'h8', category: 'heroes', civil: 'https://img.icons8.com/color/96/storm-marvel.png', undercover: 'https://img.icons8.com/color/96/magneto.png', civilLabel: 'Storm', undercoverLabel: 'Magnéto' },
   { id: 'h9', category: 'heroes', civil: 'https://img.icons8.com/color/96/batman.png', undercover: 'https://img.icons8.com/color/96/iron-man.png', civilLabel: 'Batman', undercoverLabel: 'Iron Man' },
@@ -157,6 +157,9 @@ export const emojiPairs: EmojiPair[] = [
   { id: 'h14', category: 'heroes', civil: 'https://img.icons8.com/color/96/catwoman.png', undercover: 'https://img.icons8.com/color/96/black-widow.png', civilLabel: 'Catwoman', undercoverLabel: 'Black Widow' },
   { id: 'h15', category: 'heroes', civil: 'https://img.icons8.com/color/96/joker-suicide-squad.png', undercover: 'https://img.icons8.com/color/96/venom-head.png', civilLabel: 'Joker', undercoverLabel: 'Venom' },
   { id: 'h16', category: 'heroes', civil: 'https://img.icons8.com/color/96/spiderman-head.png', undercover: 'https://img.icons8.com/color/96/deadpool.png', civilLabel: 'Spider-Man', undercoverLabel: 'Deadpool' },
+  { id: 'h17', category: 'heroes', civil: 'https://img.icons8.com/color/96/thor.png', undercover: 'https://img.icons8.com/color/96/storm-marvel.png', civilLabel: 'Thor', undercoverLabel: 'Storm' },
+  { id: 'h18', category: 'heroes', civil: 'https://img.icons8.com/color/96/joker-suicide-squad.png', undercover: 'https://icons.veryicon.com/png/Movie%20%26%20TV/Spiderman/Green%20goblin.png', civilLabel: 'Joker', undercoverLabel: 'Bouffon Vert' },
+  { id: 'h19', category: 'heroes', civil: 'https://img.icons8.com/color/96/venom-head.png', undercover: 'https://icons.veryicon.com/png/Movie%20%26%20TV/Spiderman/Green%20goblin.png', civilLabel: 'Venom', undercoverLabel: 'Bouffon Vert' },
 
   // ── Vêtements ────────────────────────────────────────
   // Ressemblance : même partie du corps ou même usage
@@ -239,9 +242,34 @@ export const emojiPairs: EmojiPair[] = [
   // Ressemblance : univers, duo, style ou trait commun
   { id: 'ct1', category: 'cartoons', civil: 'https://img.icons8.com/color/96/animation.png', undercover: 'https://img.icons8.com/color/96/goofy.png', civilLabel: 'Mickey', undercoverLabel: 'Dingo' },
   { id: 'ct2', category: 'cartoons', civil: 'https://img.icons8.com/color/96/super-mario.png', undercover: 'https://img.icons8.com/color/96/luigi.png', civilLabel: 'Mario', undercoverLabel: 'Luigi' },
-  { id: 'ct3', category: 'cartoons', civil: 'https://img.icons8.com/color/96/pikachu-pokemon.png', undercover: 'https://img.icons8.com/color/96/eevee.png', civilLabel: 'Pikachu', undercoverLabel: 'Évoli' },
   { id: 'ct4', category: 'cartoons', civil: 'https://img.icons8.com/color/96/simba.png', undercover: 'https://img.icons8.com/color/96/timon.png', civilLabel: 'Simba', undercoverLabel: 'Timon' },
   { id: 'ct5', category: 'cartoons', civil: 'https://img.icons8.com/color/96/pikachu-pokemon.png', undercover: 'https://img.icons8.com/color/96/charmander.png', civilLabel: 'Pikachu', undercoverLabel: 'Salamèche' },
-  { id: 'ct6', category: 'cartoons', civil: 'https://img.icons8.com/color/96/snorlax.png', undercover: 'https://img.icons8.com/color/96/psyduck.png', civilLabel: 'Ronflex', undercoverLabel: 'Psykokwak' },
-  { id: 'ct7', category: 'cartoons', civil: 'https://img.icons8.com/color/96/jigglypuff.png', undercover: 'https://img.icons8.com/color/96/eevee.png', civilLabel: 'Rondoudou', undercoverLabel: 'Évoli' },
+  { id: 'ct6', category: 'cartoons', civil: 'https://www.disneyclips.com/goodies/images/iconelsa.png', undercover: 'https://www.disneyclips.com/goodies/images/iconanna2.png', civilLabel: 'Elsa', undercoverLabel: 'Anna' },
+  { id: 'ct7', category: 'cartoons', civil: 'https://www.disneyclips.com/goodies/images/iconolaf.png', undercover: 'https://www.disneyclips.com/goodies/images/iconsven.png', civilLabel: 'Olaf', undercoverLabel: 'Sven' },
+  { id: 'ct8', category: 'cartoons', civil: 'https://www.disneyclips.com/goodies/images/iconmickey.png', undercover: 'https://www.disneyclips.com/goodies/images/iconminnie.png', civilLabel: 'Mickey', undercoverLabel: 'Minnie' },
+  { id: 'ct9', category: 'cartoons', civil: 'https://www.disneyclips.com/goodies/images/iconmickey.png', undercover: 'https://www.disneyclips.com/goodies/images/icondonald.png', civilLabel: 'Mickey', undercoverLabel: 'Donald' },
+  { id: 'ct10', category: 'cartoons', civil: 'https://www.disneyclips.com/goodies/images/icondaisy.png', undercover: 'https://www.disneyclips.com/goodies/images/iconminnie.png', civilLabel: 'Daisy', undercoverLabel: 'Minnie' },
+  { id: 'ct11', category: 'cartoons', civil: 'https://www.disneyclips.com/goodies/images/icondaisy.png', undercover: 'https://www.disneyclips.com/goodies/images/icondonald.png', civilLabel: 'Daisy', undercoverLabel: 'Donald' },
+  { id: 'ct12', category: 'cartoons', civil: 'https://www.disneyclips.com/goodies/images/iconpluto.png', undercover: 'https://www.disneyclips.com/goodies/images/icongoofy.png', civilLabel: 'Pluto', undercoverLabel: 'Dingo' },
+  { id: 'ct13', category: 'cartoons', civil: 'https://www.disneyclips.com/goodies/images/iconelsa.png', undercover: 'https://www.disneyclips.com/goodies/images/iconanna2.png', civilLabel: 'Elsa', undercoverLabel: 'Anna' },
+  { id: 'ct14', category: 'cartoons', civil: 'https://www.disneyclips.com/goodies/images/Ariel_icon.png', undercover: 'https://www.disneyclips.com/goodies/images/Rapunzel_icon.png', civilLabel: 'Ariel', undercoverLabel: 'Raiponce' },
+  { id: 'ct15', category: 'cartoons', civil: 'https://www.disneyclips.com/goodies/images/iconbelle.png', undercover: 'https://www.disneyclips.com/goodies/images/Cinderella_icon.png', civilLabel: 'Belle', undercoverLabel: 'Cendrillon' },
+  { id: 'ct16', category: 'cartoons', civil: 'https://www.disneyclips.com/goodies/images/iconjasmine.png', undercover: 'https://www.disneyclips.com/goodies/images/iconmulan.png', civilLabel: 'Jasmine', undercoverLabel: 'Mulan' },
+  { id: 'ct17', category: 'cartoons', civil: 'https://www.disneyclips.com/goodies/images/iconpocahontas.png', undercover: 'https://www.disneyclips.com/goodies/images/iconmulan.png', civilLabel: 'Pocahontas', undercoverLabel: 'Mulan' },
+  { id: 'ct18', category: 'cartoons', civil: 'https://www.disneyclips.com/goodies/images/Aurora_icon.png', undercover: 'https://www.disneyclips.com/goodies/images/Cinderella_icon.png', civilLabel: 'Aurore', undercoverLabel: 'Cendrillon' },
+  { id: 'ct19', category: 'cartoons', civil: 'https://www.disneyclips.com/goodies/images/icontiana.png', undercover: 'https://www.disneyclips.com/goodies/images/iconjasmine.png', civilLabel: 'Tiana', undercoverLabel: 'Jasmine' },
+  { id: 'ct20', category: 'cartoons', civil: 'https://www.disneyclips.com/goodies/images/iconscar.png', undercover: 'https://www.disneyclips.com/goodies/images/iconsherekhan.png', civilLabel: 'Scar', undercoverLabel: 'Shere Khan' },
+  { id: 'ct21', category: 'cartoons', civil: 'https://www.disneyclips.com/goodies/images/iconjafar.png', undercover: 'https://www.disneyclips.com/goodies/images/iconhades.png', civilLabel: 'Jafar', undercoverLabel: 'Hadès' },
+  { id: 'ct22', category: 'cartoons', civil: 'https://www.disneyclips.com/goodies/images/iconursula.png', undercover: 'https://www.disneyclips.com/goodies/images/iconmaleficent.png', civilLabel: 'Ursula', undercoverLabel: 'Maléfique' },
+  { id: 'ct23', category: 'cartoons', civil: 'https://www.disneyclips.com/goodies/images/iconcruella.png', undercover: 'https://www.disneyclips.com/goodies/images/iconqueenhearts.png', civilLabel: 'Cruella', undercoverLabel: 'Reine de Cœur' },
+  { id: 'ct24', category: 'cartoons', civil: 'https://www.disneyclips.com/goodies/images/iconqueen.png', undercover: 'https://www.disneyclips.com/goodies/images/iconmaleficent.png', civilLabel: 'Reine Sorcière', undercoverLabel: 'Maléfique' },
+  { id: 'ct25', category: 'cartoons', civil: 'https://www.disneyclips.com/goodies/images/iconjafar.png', undercover: 'https://www.disneyclips.com/goodies/images/iconscar.png', civilLabel: 'Jafar', undercoverLabel: 'Scar' },
+
+  // ── Marques de voitures ──────────────────────────────────────────
+  { id: 'cb1', category: 'carbrands', civil: 'https://icons.veryicon.com/png/o/brands/automobile-logo/bmw-mini-1.png', undercover: 'https://icons.veryicon.com/png/o/brands/automobile-logo/bmw-3.png', civilLabel: 'BMW Mini', undercoverLabel: 'BMW' },
+  { id: 'cb2', category: 'carbrands', civil: 'https://icons.veryicon.com/png/o/brands/automobile-logo/bmw-3.png', undercover: 'https://icons.veryicon.com/png/o/brands/automobile-logo/benz.png', civilLabel: 'BMW', undercoverLabel: 'Mercedes' },
+  { id: 'cb3', category: 'carbrands', civil: 'https://icons.veryicon.com/png/o/brands/automobile-logo/audi-1.png', undercover: 'https://icons.veryicon.com/png/o/brands/automobile-logo/benz.png', civilLabel: 'Audi', undercoverLabel: 'Mercedes' },
+  { id: 'cb4', category: 'carbrands', civil: 'https://icons.veryicon.com/png/o/brands/automobile-logo/honda.png', undercover: 'https://icons.veryicon.com/png/o/brands/automobile-logo/dongfeng-nissan.png', civilLabel: 'Honda', undercoverLabel: 'Nissan' },
+  { id: 'cb5', category: 'carbrands', civil: 'https://icons.veryicon.com/png/o/brands/automobile-logo/mazda.png', undercover: 'https://icons.veryicon.com/png/o/brands/automobile-logo/honda.png', civilLabel: 'Mazda', undercoverLabel: 'Honda' },
+  { id: 'cb6', category: 'carbrands', civil: 'https://icons.veryicon.com/png/o/brands/automobile-logo/audi-1.png', undercover: 'https://icons.veryicon.com/png/o/brands/automobile-logo/bmw-3.png', civilLabel: 'Audi', undercoverLabel: 'BMW' },
 ];
