@@ -56,13 +56,15 @@
 }
 
 .modalTitle {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 700;
   color: var(--color-primary);
 }
 
-.modalEmoji {
-  font-size: 3rem;
+.modalStep {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  text-align: center;
 }
 
 .modalText {

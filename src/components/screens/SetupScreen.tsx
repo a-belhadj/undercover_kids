@@ -60,6 +60,13 @@ export default function SetupScreen() {
   const [showGroupPicker, setShowGroupPicker] = useState(false);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [newGroupName, setNewGroupName] = useState('');
+  // UC and MW are always both active now — force on mount if stored as off
+  useEffect(() => {
+    if (!undercoverEnabled) setUndercoverEnabled(true);
+    if (!mrWhiteEnabled) setMrWhiteEnabled(true);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Clamp intrusCount and sub-counts when config changes
   useEffect(() => {
     const clamped = clampIntrusCounts(playerCount, {
@@ -409,119 +416,70 @@ export default function SetupScreen() {
         </div>
       </div>
 
-      {/* Undercover type toggle */}
-      <button
-        className={styles.toggle}
-        onClick={() => {
-          if (undercoverEnabled && !mrWhiteEnabled) {
-            // Turning off UC → turn on MW
-            setUndercoverEnabled(false);
-            setMrWhiteEnabled(true);
-          } else {
-            setUndercoverEnabled(!undercoverEnabled);
-          }
-        }}
-      >
+      {/* Random split toggle */}
+      <button className={styles.toggle} onClick={() => setRandomSplit(!randomSplit)}>
         <div className={styles.toggleLabelWrap}>
-          <span className={styles.toggleLabel}>
-            <span>🥷</span> Undercover
-          </span>
+          <span className={styles.toggleLabel}><span>🎲</span> Répartition aléatoire</span>
+          <span className={styles.toggleSub}>Le jeu décide combien d'Undercovers et de Mr. White</span>
         </div>
-        <span className={undercoverEnabled ? styles.switchOn : styles.switch}>
+        <span className={randomSplit ? styles.switchOn : styles.switch}>
           <span className={styles.switchKnob} />
         </span>
       </button>
 
-      {/* Mr. White type toggle */}
-      <button
-        className={styles.toggle}
-        onClick={() => {
-          if (mrWhiteEnabled && !undercoverEnabled) {
-            // Turning off MW → turn on UC
-            setMrWhiteEnabled(false);
-            setUndercoverEnabled(true);
-          } else {
-            setMrWhiteEnabled(!mrWhiteEnabled);
-          }
-        }}
-      >
-        <div className={styles.toggleLabelWrap}>
-          <span className={styles.toggleLabel}>
-            <span>🎩</span> Mr. White
-          </span>
+      {/* Split slider — when not random */}
+      {!randomSplit && (
+        <div className={styles.splitSliderBox}>
+          <span
+            className={styles.splitSliderLabel}
+            onClick={() => { setUndercoverEnabled(true); setMrWhiteEnabled(false); setUndercoverCount(intrusCount); setMrWhiteCount(0); }}
+          >🥷 {undercoverCount}</span>
+          <div className={styles.splitSliderWrap}>
+            <input
+              type="range"
+              className={styles.splitSlider}
+              min={0}
+              max={intrusCount}
+              step={1}
+              value={undercoverCount}
+              onChange={(e) => {
+              const uc = Number(e.target.value);
+              setUndercoverEnabled(uc > 0);
+              setMrWhiteEnabled(uc < intrusCount);
+              setUndercoverCount(uc);
+              setMrWhiteCount(intrusCount - uc);
+              }}
+            />
+            <div className={styles.splitSliderSegments}>
+              {Array.from({ length: intrusCount }, (_, i) => (
+                <div
+                  key={i}
+                  className={styles.splitSliderSegment}
+                  style={{ background: i < undercoverCount ? '#6C5CE7' : '#FDCB6E' }}
+                />
+              ))}
+            </div>
+          </div>
+          <span
+            className={styles.splitSliderLabel}
+            onClick={() => { setUndercoverEnabled(false); setMrWhiteEnabled(true); setMrWhiteCount(intrusCount); setUndercoverCount(0); }}
+          >🎩 {mrWhiteCount}</span>
         </div>
-        <span className={mrWhiteEnabled ? styles.switchOn : styles.switch}>
-          <span className={styles.switchKnob} />
-        </span>
-      </button>
-
-      {/* Split options: only when both types active and intrusCount > 1 */}
-      {undercoverEnabled && mrWhiteEnabled && intrusCount > 1 && (
-        <>
-          <button
-            className={styles.toggle}
-            onClick={() => setRandomSplit(!randomSplit)}
-          >
-            <div className={styles.toggleLabelWrap}>
-              <span className={styles.toggleLabel}>
-                <span>🎲</span> Répartition aléatoire
-              </span>
-              <span className={styles.toggleSub}>
-                Le jeu décide combien d'Undercovers et de Mr. White
-              </span>
-            </div>
-            <span className={randomSplit ? styles.switchOn : styles.switch}>
-              <span className={styles.switchKnob} />
-            </span>
-          </button>
-
-          {/* Manual sub-steppers when randomSplit is off */}
-          {!randomSplit && (
-            <div className={styles.splitSection}>
-              <div className={styles.roleSection}>
-                <span className={styles.roleLabel}>🥷 Undercovers</span>
-                <div className={styles.stepper}>
-                  <button
-                    className={styles.stepperBtn}
-                    onClick={() => { setUndercoverCount(undercoverCount - 1); setMrWhiteCount(mrWhiteCount + 1); }}
-                    disabled={undercoverCount <= 0}
-                  >
-                    -
-                  </button>
-                  <span className={styles.stepperValue}>{undercoverCount}</span>
-                  <button
-                    className={styles.stepperBtn}
-                    onClick={() => { setUndercoverCount(undercoverCount + 1); setMrWhiteCount(mrWhiteCount - 1); }}
-                    disabled={mrWhiteCount <= 0}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-              <div className={styles.roleSection}>
-                <span className={styles.roleLabel}>🎩 Mr. White</span>
-                <div className={styles.stepper}>
-                  <button
-                    className={styles.stepperBtn}
-                    onClick={() => { setMrWhiteCount(mrWhiteCount - 1); setUndercoverCount(undercoverCount + 1); }}
-                    disabled={mrWhiteCount <= 0}
-                  >
-                    -
-                  </button>
-                  <span className={styles.stepperValue}>{mrWhiteCount}</span>
-                  <button
-                    className={styles.stepperBtn}
-                    onClick={() => { setMrWhiteCount(mrWhiteCount + 1); setUndercoverCount(undercoverCount - 1); }}
-                    disabled={undercoverCount <= 0}
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-        </>
       )}
+
+      {/* Recap */}
+      <div className={styles.startRecap}>
+        <span className={styles.startRecapMain}>{playerCount} joueurs · {intrusCount} intrus</span>
+        <span className={styles.startRecapSub}>
+          {randomSplit
+            ? 'répartition aléatoire entre Undercover et Mr. White'
+            : mrWhiteCount === 0
+              ? `${intrusCount} Undercover`
+              : undercoverCount === 0
+                ? `${intrusCount} Mr. White`
+                : `${undercoverCount} Undercover · ${mrWhiteCount} Mr. White`}
+        </span>
+      </div>
 
       {/* Category */}
       <div className={styles.sectionTitle}>Catégorie</div>

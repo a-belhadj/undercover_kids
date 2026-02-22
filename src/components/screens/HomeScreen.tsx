@@ -8,11 +8,13 @@ import PacksScreen from './PacksScreen';
 import styles from './HomeScreen.module.css';
 
 const RULES_SLIDES = [
-  { emoji: '🎯', text: 'Chaque joueur reçoit une image en secret.' },
-  { emoji: '🕵️', text: "L'espion a une image différente mais qui ressemble !" },
-  { emoji: '🗣️', text: 'Décrivez votre image chacun votre tour avec un mot.' },
-  { emoji: '🗳️', text: "Votez pour éliminer celui que vous pensez être l'espion !" },
-  { emoji: '🏆', text: "Les civils gagnent si l'espion est démasqué !" },
+  { emoji: '🎯', title: 'Le but', text: 'Les civils cherchent à démasquer les intrus. Les intrus cherchent à passer inaperçus !' },
+  { emoji: '👤', title: 'Les civils', text: 'La majorité des joueurs. Ils reçoivent tous la même image et doivent trouver les intrus.' },
+  { emoji: '🥷', title: 'Undercover', text: "Reçoit une image proche mais différente de celle des civils. Il doit bluffer pour ne pas se faire repérer !" },
+  { emoji: '🎩', title: 'Mr. White', text: "Ne reçoit aucune image ! Il doit écouter les autres et inventer une description crédible." },
+  { emoji: '🗣️', title: 'Le tour de parole', text: 'Chaque joueur décrit son image en un seul mot, sans trop en dire.' },
+  { emoji: '🗳️', title: 'Le vote', text: 'Après les descriptions, tout le monde vote pour éliminer le joueur le plus suspect.' },
+  { emoji: '🏆', title: 'La victoire', text: "Civils : éliminez tous les intrus ! Intrus : survivez jusqu'à égalité avec les civils." },
 ];
 
 export default function HomeScreen() {
@@ -60,13 +62,13 @@ export default function HomeScreen() {
         <div className={styles.overlay} onClick={() => setShowRules(false)}>
           <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalTitle}>
-              Règle {ruleIndex + 1}/{RULES_SLIDES.length}
-            </div>
-            <div className={styles.modalEmoji}>
-              {RULES_SLIDES[ruleIndex].emoji}
+              {RULES_SLIDES[ruleIndex].emoji} {RULES_SLIDES[ruleIndex].title}
             </div>
             <div className={styles.modalText}>
               {RULES_SLIDES[ruleIndex].text}
+            </div>
+            <div className={styles.modalStep}>
+              {ruleIndex + 1} / {RULES_SLIDES.length}
             </div>
             <div className={styles.modalActions}>
               {ruleIndex > 0 && (
