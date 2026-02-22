@@ -54,6 +54,7 @@ export interface GameState {
   selectedCategories: string[];
   mrWhiteCannotStart: boolean;
   pairDisplayMode: PairDisplayMode;
+  revealedPlayers: number[];
 }
 
 export const AVATAR_EMOJIS = [

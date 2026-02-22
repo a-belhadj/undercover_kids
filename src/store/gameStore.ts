@@ -30,6 +30,8 @@ interface GameActions {
 
   // Reveal
   nextReveal: () => void;
+  markPlayerRevealed: (playerIndex: number) => void;
+  jumpToPlayer: (playerIndex: number) => void;
 
   // Restart
   restartWithSamePlayers: () => void;
@@ -68,6 +70,7 @@ const initialState: GameState = {
   selectedCategories: loadSelectedCategories(),
   mrWhiteCannotStart: loadMrWhiteCannotStart(),
   pairDisplayMode: loadPairDisplayMode(),
+  revealedPlayers: [],
 };
 
 export const useGameStore = create<GameState & GameActions>((set, get) => ({
@@ -100,6 +103,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
     selectedCategories: get().selectedCategories,
     mrWhiteCannotStart: get().mrWhiteCannotStart,
     pairDisplayMode: get().pairDisplayMode,
+    revealedPlayers: [],
   }),
 
   setUndercoverCount: (count) => {
@@ -186,17 +190,38 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       speakingOrder,
       winner: null,
       cheatLog: { peekCounts: {}, showAllCount: 0 },
+      revealedPlayers: [],
     });
   },
 
   nextReveal: () => {
-    const { currentPlayerIndex, players } = get();
-    const next = currentPlayerIndex + 1;
-    if (next >= players.length) {
-      set({ phase: 'discussion', currentPlayerIndex: 0 });
-    } else {
-      set({ currentPlayerIndex: next });
+    const { currentPlayerIndex, revealedPlayers, players } = get();
+    const nextRevealed = [...revealedPlayers, currentPlayerIndex];
+    if (nextRevealed.length >= players.length) {
+      set({ revealedPlayers: nextRevealed, phase: 'discussion', currentPlayerIndex: 0 });
+      return;
     }
+    // Find next player not yet revealed
+    const nextIndex = players.findIndex((_, i) => !nextRevealed.includes(i));
+    set({ revealedPlayers: nextRevealed, currentPlayerIndex: nextIndex });
+  },
+
+  markPlayerRevealed: (playerIndex) => {
+    const { revealedPlayers, players } = get();
+    if (revealedPlayers.includes(playerIndex)) return;
+    const next = [...revealedPlayers, playerIndex];
+    if (next.length >= players.length) {
+      set({ revealedPlayers: next, phase: 'discussion', currentPlayerIndex: 0 });
+    } else {
+      const nextIndex = players.findIndex((_, i) => !next.includes(i));
+      set({ revealedPlayers: next, currentPlayerIndex: nextIndex });
+    }
+  },
+
+  jumpToPlayer: (playerIndex) => {
+    const { revealedPlayers } = get();
+    if (revealedPlayers.includes(playerIndex)) return;
+    set({ currentPlayerIndex: playerIndex });
   },
 
   restartWithSamePlayers: () => {
@@ -220,6 +245,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       speakingOrder,
       winner: null,
       cheatLog: { peekCounts: {}, showAllCount: 0 },
+      revealedPlayers: [],
     });
   },
 
@@ -256,6 +282,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       speakingOrder,
       winner: null,
       cheatLog: { peekCounts: {}, showAllCount: 0 },
+      revealedPlayers: [],
     });
   },
 

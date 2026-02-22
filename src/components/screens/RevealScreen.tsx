@@ -8,20 +8,29 @@ import PlayerCardReveal from '../ui/PlayerCardReveal';
 import ConfirmOverlay from '../ui/ConfirmOverlay';
 import styles from './RevealScreen.module.css';
 
-/** Inner component — remounted via key when player/pair changes, resetting local state */
+/** Inner component — remounted via key when pair changes, resetting local state */
 function RevealCard() {
-  const { players, currentPlayerIndex, nextReveal, easyMode, pairDisplayMode, disableCurrentPairAndRestart, setPhase, goHome } = useGameStore();
+  const {
+    players, currentPlayerIndex, revealedPlayers,
+    nextReveal, jumpToPlayer,
+    easyMode, pairDisplayMode,
+    disableCurrentPairAndRestart, setPhase, goHome,
+  } = useGameStore();
+
   const [revealed, setRevealed] = useState(false);
   const [confirmDisable, setConfirmDisable] = useState(false);
   const [confirmNav, setConfirmNav] = useState<'setup' | 'home' | null>(null);
 
-  const player = players[currentPlayerIndex];
-
   useScrollToTop();
 
-  const handleReveal = () => setRevealed(true);
-  const handleNext = () => {
-    nextReveal();
+  const player = players[currentPlayerIndex];
+
+  const handleJump = (idx: number) => {
+    if (revealedPlayers.includes(idx) || idx === currentPlayerIndex) return;
+    jumpToPlayer(idx);
+    // reset reveal state for the new player (remount handles this via key, but jump
+    // doesn't change pairId so we reset manually)
+    setRevealed(false);
   };
 
   return (
@@ -30,22 +39,14 @@ function RevealCard() {
       onBack={() => setConfirmNav('setup')}
       fit
     >
-      {/* Home button — top-right corner */}
-      <button
-        className={styles.homeBtn}
-        onClick={() => setConfirmNav('home')}
-        aria-label="Accueil"
-      >
+      {/* Home button */}
+      <button className={styles.homeBtn} onClick={() => setConfirmNav('home')} aria-label="Accueil">
         🏠
       </button>
 
-      {/* Disable pair — small icon next to home */}
+      {/* Disable pair */}
       {revealed && player.role !== 'mrwhite' && (
-        <button
-          className={styles.disableBtn}
-          onClick={() => setConfirmDisable(true)}
-          aria-label="Changer la paire"
-        >
+        <button className={styles.disableBtn} onClick={() => setConfirmDisable(true)} aria-label="Changer la paire">
           🚫
         </button>
       )}
@@ -60,7 +61,6 @@ function RevealCard() {
           onCancel={() => setConfirmDisable(false)}
         />
       )}
-
       {confirmNav === 'setup' && (
         <ConfirmOverlay
           message="Retourner à la configuration ? La partie en cours sera perdue."
@@ -71,7 +71,6 @@ function RevealCard() {
           onCancel={() => setConfirmNav(null)}
         />
       )}
-
       {confirmNav === 'home' && (
         <ConfirmOverlay
           message="Retourner à l'accueil ? La partie en cours sera perdue."
@@ -83,23 +82,42 @@ function RevealCard() {
         />
       )}
 
+      {/* Player order banner */}
+      <div className={styles.playerBanner}>
+        {players.map((p, i) => {
+          const isDone = revealedPlayers.includes(i);
+          const isCurrent = i === currentPlayerIndex;
+          return (
+            <button
+              key={i}
+              className={[
+                styles.bannerItem,
+                isCurrent ? styles.bannerCurrent : '',
+                isDone ? styles.bannerDone : '',
+              ].join(' ')}
+              onClick={() => handleJump(i)}
+              disabled={isDone}
+              aria-label={p.name}
+            >
+              <PlayerAvatar emoji={p.avatarEmoji} color={p.avatarColor} size="small" />
+              <span className={styles.bannerName}>{p.name}</span>
+              {isDone && <span className={styles.bannerCheck}>✓</span>}
+            </button>
+          );
+        })}
+      </div>
+
       <div className={styles.center}>
-        <PlayerAvatar
-          emoji={player.avatarEmoji}
-          color={player.avatarColor}
-          size="large"
-        />
+        <PlayerAvatar emoji={player.avatarEmoji} color={player.avatarColor} size="large" />
       </div>
 
       <div className={styles.playerName}>{player.name}</div>
 
       {!revealed ? (
         <>
-          <div className={styles.instruction}>
-            Retourne le téléphone vers toi 🤫
-          </div>
+          <div className={styles.instruction}>Retourne le téléphone vers toi 🤫</div>
           <div className={styles.hidden}>👀</div>
-          <Button variant="primary" size="large" icon="👁️" onClick={handleReveal}>
+          <Button variant="primary" size="large" icon="👁️" onClick={() => setRevealed(true)}>
             Voir mon image
           </Button>
         </>
@@ -112,7 +130,7 @@ function RevealCard() {
             easyMode={easyMode}
             pairDisplayMode={pairDisplayMode}
           />
-          <Button variant="success" size="large" icon="✅" onClick={handleNext}>
+          <Button variant="success" size="large" icon="✅" onClick={nextReveal}>
             J'ai vu !
           </Button>
         </>
@@ -122,9 +140,7 @@ function RevealCard() {
 }
 
 export default function RevealScreen() {
-  const currentPlayerIndex = useGameStore((s) => s.currentPlayerIndex);
   const pairId = useGameStore((s) => s.currentPair?.id);
-
-  // Key forces remount → all local state resets when player or pair changes
-  return <RevealCard key={`${pairId}-${currentPlayerIndex}`} />;
+  // Remount when pair changes (new game/disable pair), NOT on currentPlayerIndex change
+  return <RevealCard key={pairId} />;
 }
