@@ -77,15 +77,19 @@
   margin-top: 0.5rem;
 }
 
-.attribution {
+.credits {
   font-size: 0.7rem;
   color: var(--color-text-light);
   opacity: 0.5;
-  text-decoration: none;
   margin-top: auto;
 }
 
-.attribution:hover {
-  opacity: 0.8;
+.credits a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.credits a:hover {
   text-decoration: underline;
+  opacity: 0.8;
 }

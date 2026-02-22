@@ -42,14 +42,14 @@ export default function HomeScreen() {
         </div>
       </div>
 
-      <a
-        className={styles.attribution}
-        href="https://icons8.com"
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Icons by Icons8
-      </a>
+      <div className={styles.credits}>
+        Icônes :{' '}
+        <a href="https://icons8.com" target="_blank" rel="noopener noreferrer">Icons8</a>
+        {' · '}
+        <a href="https://www.veryicon.com" target="_blank" rel="noopener noreferrer">VeryIcon</a>
+        {' · '}
+        <a href="https://www.disneyclips.com" target="_blank" rel="noopener noreferrer">Disneyclips</a>
+      </div>
 
       {showRules && (
         <div className={styles.overlay} onClick={() => setShowRules(false)}>
