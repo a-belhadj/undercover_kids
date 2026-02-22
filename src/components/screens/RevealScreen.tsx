@@ -18,6 +18,7 @@ function RevealCard() {
   } = useGameStore();
 
   const [revealed, setRevealed] = useState(false);
+  const [waiting, setWaiting] = useState(false);
   const [confirmDisable, setConfirmDisable] = useState(false);
   const [confirmNav, setConfirmNav] = useState<'setup' | 'home' | null>(null);
 
@@ -28,9 +29,8 @@ function RevealCard() {
   const handleJump = (idx: number) => {
     if (revealedPlayers.includes(idx) || idx === currentPlayerIndex) return;
     jumpToPlayer(idx);
-    // reset reveal state for the new player (remount handles this via key, but jump
-    // doesn't change pairId so we reset manually)
     setRevealed(false);
+    setWaiting(false);
   };
 
   return (
@@ -121,6 +121,14 @@ function RevealCard() {
             Voir mon image
           </Button>
         </>
+      ) : waiting ? (
+        <>
+          <div className={styles.instruction}>Passe le téléphone au joueur suivant 🤝</div>
+          <div className={styles.hidden}>👀</div>
+          <Button variant="primary" size="large" icon="▶️" onClick={() => { nextReveal(); setRevealed(false); setWaiting(false); }}>
+            Joueur suivant
+          </Button>
+        </>
       ) : (
         <>
           <PlayerCardReveal
@@ -130,7 +138,7 @@ function RevealCard() {
             easyMode={easyMode}
             pairDisplayMode={pairDisplayMode}
           />
-          <Button variant="success" size="large" icon="✅" onClick={nextReveal}>
+          <Button variant="success" size="large" icon="✅" onClick={() => setWaiting(true)}>
             J'ai vu !
           </Button>
         </>

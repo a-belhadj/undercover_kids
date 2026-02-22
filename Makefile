@@ -1,4 +1,4 @@
-.PHONY: up build preview lint typecheck test check clean install
+.PHONY: up build preview lint typecheck test check clean install pairs
 
 # Dev server accessible sur le réseau local
 up:
@@ -30,6 +30,10 @@ test:
 # Install des dépendances
 install:
 	npm ci
+
+# Aperçu des paires (génère pairs.html et ouvre dans le navigateur)
+pairs:
+	node pairs-preview.mjs && xdg-open pairs.html
 
 # Clean
 clean:
