@@ -18,7 +18,6 @@ function RevealCard() {
   } = useGameStore();
 
   const [revealed, setRevealed] = useState(false);
-  const [waiting, setWaiting] = useState(false);
   const [confirmDisable, setConfirmDisable] = useState(false);
   const [confirmNav, setConfirmNav] = useState<'setup' | 'home' | null>(null);
 
@@ -30,7 +29,6 @@ function RevealCard() {
     if (revealedPlayers.includes(idx) || idx === currentPlayerIndex) return;
     jumpToPlayer(idx);
     setRevealed(false);
-    setWaiting(false);
   };
 
   return (
@@ -121,14 +119,6 @@ function RevealCard() {
             Voir mon image
           </Button>
         </>
-      ) : waiting ? (
-        <>
-          <div className={styles.instruction}>Passe le téléphone au joueur suivant 🤝</div>
-          <div className={styles.hidden}>👀</div>
-          <Button variant="primary" size="large" icon="▶️" onClick={() => { nextReveal(); setRevealed(false); setWaiting(false); }}>
-            Joueur suivant
-          </Button>
-        </>
       ) : (
         <>
           <PlayerCardReveal
@@ -138,7 +128,7 @@ function RevealCard() {
             easyMode={easyMode}
             pairDisplayMode={pairDisplayMode}
           />
-          <Button variant="success" size="large" icon="✅" onClick={() => setWaiting(true)}>
+          <Button variant="success" size="large" icon="✅" onClick={() => { nextReveal(); setRevealed(false); }}>
             J'ai vu !
           </Button>
         </>
