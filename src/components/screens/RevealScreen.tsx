@@ -10,9 +10,10 @@ import styles from './RevealScreen.module.css';
 
 /** Inner component — remounted via key when player/pair changes, resetting local state */
 function RevealCard() {
-  const { players, currentPlayerIndex, nextReveal, easyMode, pairDisplayMode, disableCurrentPairAndRestart } = useGameStore();
+  const { players, currentPlayerIndex, nextReveal, easyMode, pairDisplayMode, disableCurrentPairAndRestart, setPhase, goHome } = useGameStore();
   const [revealed, setRevealed] = useState(false);
   const [confirmDisable, setConfirmDisable] = useState(false);
+  const [confirmNav, setConfirmNav] = useState<'setup' | 'home' | null>(null);
 
   const player = players[currentPlayerIndex];
 
@@ -24,8 +25,21 @@ function RevealCard() {
   };
 
   return (
-    <GameLayout title={`Joueur ${currentPlayerIndex + 1}/${players.length}`} fit>
-      {/* Disable pair — small icon in top-right corner */}
+    <GameLayout
+      title={`Joueur ${currentPlayerIndex + 1}/${players.length}`}
+      onBack={() => setConfirmNav('setup')}
+      fit
+    >
+      {/* Home button — top-right corner */}
+      <button
+        className={styles.homeBtn}
+        onClick={() => setConfirmNav('home')}
+        aria-label="Accueil"
+      >
+        🏠
+      </button>
+
+      {/* Disable pair — small icon next to home */}
       {revealed && player.role !== 'mrwhite' && (
         <button
           className={styles.disableBtn}
@@ -44,6 +58,28 @@ function RevealCard() {
           danger
           onConfirm={() => disableCurrentPairAndRestart(currentPlayerIndex)}
           onCancel={() => setConfirmDisable(false)}
+        />
+      )}
+
+      {confirmNav === 'setup' && (
+        <ConfirmOverlay
+          message="Retourner à la configuration ? La partie en cours sera perdue."
+          icon="⚙️"
+          confirmLabel="↩️ Configuration"
+          danger
+          onConfirm={() => setPhase('setup')}
+          onCancel={() => setConfirmNav(null)}
+        />
+      )}
+
+      {confirmNav === 'home' && (
+        <ConfirmOverlay
+          message="Retourner à l'accueil ? La partie en cours sera perdue."
+          icon="🏠"
+          confirmLabel="🏠 Accueil"
+          danger
+          onConfirm={() => goHome()}
+          onCancel={() => setConfirmNav(null)}
         />
       )}
 
