@@ -1,14 +1,22 @@
 import { create } from 'zustand';
-import type { GameState, GamePhase, PairDisplayMode, Player, CheatLog } from '../types/game';
+import type { GameState, GamePhase, PairDisplayMode, Player, CheatLog, EmojiPair } from '../types/game';
 import { pickPair, createPlayers, buildSpeakingOrder, checkGameOver } from '../logic/gameEngine';
 import { computeFinalCounts } from '../logic/roles';
-import { savePlayerProfiles, loadUndercoverCount, saveUndercoverCount, loadMrWhiteCount, saveMrWhiteCount, loadDisabledPairs, saveDisabledPairs, loadEasyMode, saveEasyMode, loadSelectedCategories, saveSelectedCategories, loadMrWhiteCannotStart, saveMrWhiteCannotStart, loadAntiCheat, saveAntiCheat, loadIntrusCount, saveIntrusCount, loadUndercoverEnabled, saveUndercoverEnabled, loadMrWhiteEnabled, saveMrWhiteEnabled, loadRandomSplit, saveRandomSplit, loadPairDisplayMode, savePairDisplayMode } from '../lib/storage';
+import { savePlayerProfiles, loadUndercoverCount, saveUndercoverCount, loadMrWhiteCount, saveMrWhiteCount, loadDisabledPairs, saveDisabledPairs, loadEasyMode, saveEasyMode, loadSelectedCategories, saveSelectedCategories, loadMrWhiteCannotStart, saveMrWhiteCannotStart, loadAntiCheat, saveAntiCheat, loadIntrusCount, saveIntrusCount, loadUndercoverEnabled, saveUndercoverEnabled, loadMrWhiteEnabled, saveMrWhiteEnabled, loadRandomSplit, saveRandomSplit, loadPairDisplayMode, savePairDisplayMode, loadCustomPairs, saveCustomPairs } from '../lib/storage';
 import type { AntiCheatSettings } from '../lib/storage';
 
 interface GameActions {
   // Navigation
   setPhase: (phase: GamePhase) => void;
   goHome: () => void;
+
+  // Custom pairs
+  customPairs: EmojiPair[];
+  addCustomPair: (pair: EmojiPair) => void;
+  removeCustomPair: (id: string) => void;
+  updateCustomPair: (pair: EmojiPair) => void;
+  toggleDisabledPair: (id: string) => void;
+  disabledPairIds: string[];
 
   // Setup
   setUndercoverCount: (count: number) => void;
@@ -75,6 +83,34 @@ const initialState: GameState = {
 
 export const useGameStore = create<GameState & GameActions>((set, get) => ({
   ...initialState,
+
+  customPairs: loadCustomPairs(),
+  disabledPairIds: loadDisabledPairs(),
+
+  addCustomPair: (pair) => {
+    const pairs = [...get().customPairs, pair];
+    saveCustomPairs(pairs);
+    set({ customPairs: pairs });
+  },
+
+  removeCustomPair: (id) => {
+    const pairs = get().customPairs.filter((p) => p.id !== id);
+    saveCustomPairs(pairs);
+    set({ customPairs: pairs });
+  },
+
+  updateCustomPair: (pair) => {
+    const pairs = get().customPairs.map((p) => p.id === pair.id ? pair : p);
+    saveCustomPairs(pairs);
+    set({ customPairs: pairs });
+  },
+
+  toggleDisabledPair: (id) => {
+    const current = get().disabledPairIds;
+    const next = current.includes(id) ? current.filter((x) => x !== id) : [...current, id];
+    saveDisabledPairs(next);
+    set({ disabledPairIds: next });
+  },
 
   antiCheat: loadAntiCheat(),
 
@@ -172,10 +208,10 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
   startGame: (names, avatarEmojis, avatarColors) => {
     const state = get();
-    const { selectedCategories, mrWhiteCannotStart } = state;
+    const { selectedCategories, mrWhiteCannotStart, customPairs } = state;
     const { finalUC, finalMW } = computeFinalCounts(state);
     const disabledPairs = loadDisabledPairs();
-    const pair = pickPair(selectedCategories, disabledPairs);
+    const pair = pickPair(selectedCategories, disabledPairs, customPairs);
     const players = createPlayers(names, avatarEmojis, avatarColors, pair, finalUC, finalMW);
     const speakingOrder = buildSpeakingOrder(players, mrWhiteCannotStart);
     // Persist player profiles so they survive app restarts
@@ -226,11 +262,11 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
   restartWithSamePlayers: () => {
     const state = get();
-    const { players, selectedCategories, mrWhiteCannotStart } = state;
+    const { players, selectedCategories, mrWhiteCannotStart, customPairs } = state;
     const { finalUC, finalMW } = computeFinalCounts(state);
     const { names, emojis, colors } = extractPlayerProps(players);
     const disabledPairs = loadDisabledPairs();
-    const pair = pickPair(selectedCategories, disabledPairs);
+    const pair = pickPair(selectedCategories, disabledPairs, customPairs);
     const newPlayers = createPlayers(names, emojis, colors, pair, finalUC, finalMW);
     const speakingOrder = buildSpeakingOrder(newPlayers, mrWhiteCannotStart);
     // Keep profiles in sync for app restarts
@@ -251,7 +287,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
 
   disableCurrentPairAndRestart: (firstPlayerIndex?: number) => {
     const state = get();
-    const { currentPair, players, selectedCategories, mrWhiteCannotStart } = state;
+    const { currentPair, players, selectedCategories, mrWhiteCannotStart, customPairs } = state;
     const { finalUC, finalMW } = computeFinalCounts(state);
     // Add current pair to disabled list
     if (currentPair) {
@@ -271,7 +307,7 @@ export const useGameStore = create<GameState & GameActions>((set, get) => ({
       colors = rotate(colors);
     }
     const disabledPairs = loadDisabledPairs();
-    const pair = pickPair(selectedCategories, disabledPairs);
+    const pair = pickPair(selectedCategories, disabledPairs, customPairs);
     const newPlayers = createPlayers(names, emojis, colors, pair, finalUC, finalMW);
     const speakingOrder = buildSpeakingOrder(newPlayers, mrWhiteCannotStart);
     set({

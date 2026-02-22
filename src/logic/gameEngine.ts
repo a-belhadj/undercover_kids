@@ -5,18 +5,23 @@ import { generateId } from '../lib/generateId';
 import { shuffle } from '../lib/shuffle';
 
 /** Pick a random emoji pair from given categories (or all if empty), excluding disabled pairs */
-export function pickPair(categories: string[] = [], disabledPairIds: string[] = []): EmojiPair {
+export function pickPair(
+  categories: string[] = [],
+  disabledPairIds: string[] = [],
+  customPairs: EmojiPair[] = [],
+): EmojiPair {
   const disabled = new Set(disabledPairIds);
   const catSet = new Set(categories);
+  const allPairs = [...emojiPairs, ...customPairs];
   let pool =
     catSet.size > 0
-      ? emojiPairs.filter((p) => catSet.has(p.category) && !disabled.has(p.id))
-      : emojiPairs.filter((p) => !disabled.has(p.id));
+      ? allPairs.filter((p) => catSet.has(p.category) && !disabled.has(p.id))
+      : allPairs.filter((p) => !disabled.has(p.id));
   // Fallback: if everything is disabled, ignore disabled filter
   if (pool.length === 0) {
     pool = catSet.size > 0
-      ? emojiPairs.filter((p) => catSet.has(p.category))
-      : emojiPairs;
+      ? allPairs.filter((p) => catSet.has(p.category))
+      : allPairs;
   }
   return pool[Math.floor(Math.random() * pool.length)];
 }

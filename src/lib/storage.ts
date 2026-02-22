@@ -20,7 +20,7 @@ const RANDOM_SPLIT_KEY = 'undercover-kids-random-split';
 const PAIR_DISPLAY_MODE_KEY = 'undercover-kids-pair-display-mode';
 const ANTI_CHEAT_KEY = 'undercover-kids-anti-cheat';
 
-import type { RosterPlayer, PlayerGroup, PairDisplayMode } from '../types/game';
+import type { RosterPlayer, PlayerGroup, PairDisplayMode, EmojiPair } from '../types/game';
 
 // ── Internal helpers ─────────────────────────────────────────
 
@@ -142,3 +142,9 @@ export function loadAntiCheat(): AntiCheatSettings {
 }
 
 export function saveAntiCheat(settings: AntiCheatSettings): void { saveItem(ANTI_CHEAT_KEY, settings); }
+
+// ── Custom pairs ─────────────────────────────────────────────
+
+const CUSTOM_PAIRS_KEY = 'undercover-kids-custom-pairs';
+export function loadCustomPairs(): EmojiPair[] { return loadItem(CUSTOM_PAIRS_KEY, []); }
+export function saveCustomPairs(pairs: EmojiPair[]): void { saveItem(CUSTOM_PAIRS_KEY, pairs); }

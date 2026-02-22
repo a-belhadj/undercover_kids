@@ -16,7 +16,7 @@ import styles from './SetupScreen.module.css';
 const MAX_PLAYERS = 16;
 
 export default function SetupScreen() {
-  const { setPhase, startGame, undercoverCount, setUndercoverCount, mrWhiteCount, setMrWhiteCount, intrusCount, setIntrusCount, undercoverEnabled, setUndercoverEnabled, mrWhiteEnabled, setMrWhiteEnabled, randomSplit, setRandomSplit, selectedCategories, toggleCategory, setSelectedCategory } =
+  const { setPhase, startGame, undercoverCount, setUndercoverCount, mrWhiteCount, setMrWhiteCount, intrusCount, setIntrusCount, undercoverEnabled, setUndercoverEnabled, mrWhiteEnabled, setMrWhiteEnabled, randomSplit, setRandomSplit, selectedCategories, toggleCategory, setSelectedCategory, customPairs } =
     useGameStore();
 
   // Load saved profiles on mount
@@ -35,6 +35,8 @@ export default function SetupScreen() {
     }
     return { enabledPerCategory: enabled, totalPerCategory: total };
   }, []);
+
+  const customPairsCount = customPairs.length;
 
   const [playerCount, setPlayerCount] = useState(() =>
     hasSaved ? Math.max(3, Math.min(MAX_PLAYERS, savedProfiles.length)) : 4,
@@ -306,9 +308,6 @@ export default function SetupScreen() {
       {/* Player names + avatar */}
       <div className={styles.sectionTitle}>
         Joueurs
-        {hasSaved && (
-          <span className={styles.savedBadge}>restaurés</span>
-        )}
         <span className={styles.groupBtns}>
           {groups.length > 0 && (
             <button className={styles.loadGroupBtn} onClick={() => setShowGroupPicker(true)}>
@@ -557,6 +556,21 @@ export default function SetupScreen() {
             </button>
           );
         })}
+        {customPairsCount > 0 && (
+          <button
+            className={
+              selectedCategories.includes('custom')
+                ? styles.catBtnActive
+                : styles.catBtn
+            }
+            onClick={() => toggleCategory('custom')}
+            style={{ outline: '2px dashed var(--color-primary)', outlineOffset: '-2px' }}
+          >
+            <span className={styles.catCount}>{customPairsCount}</span>
+            <span className={styles.catIcon}>✏️</span>
+            Mes paires
+          </button>
+        )}
       </div>
 
       {/* Start */}

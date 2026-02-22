@@ -4,6 +4,7 @@ import { useScrollToTop } from '../../hooks/useScrollToTop';
 import GameLayout from '../layout/GameLayout';
 import Button from '../ui/Button';
 import Settings from './Settings';
+import PacksScreen from './PacksScreen';
 import styles from './HomeScreen.module.css';
 
 const RULES_SLIDES = [
@@ -19,6 +20,7 @@ export default function HomeScreen() {
   const [showRules, setShowRules] = useState(false);
   const [ruleIndex, setRuleIndex] = useState(0);
   const [showSettings, setShowSettings] = useState(false);
+  const [showPacks, setShowPacks] = useState(false);
 
   useScrollToTop();
 
@@ -35,6 +37,9 @@ export default function HomeScreen() {
           </Button>
           <Button variant="secondary" block icon="⚙️" onClick={() => setShowSettings(true)}>
             Paramètres
+          </Button>
+          <Button variant="secondary" block icon="✏️" onClick={() => setShowPacks(true)}>
+            Mes paires
           </Button>
           <Button variant="secondary" block icon="❓" onClick={() => { setRuleIndex(0); setShowRules(true); }}>
             Règles
@@ -86,6 +91,11 @@ export default function HomeScreen() {
       {/* Settings overlay */}
       {showSettings && (
         <Settings onClose={() => setShowSettings(false)} />
+      )}
+
+      {/* Packs overlay */}
+      {showPacks && (
+        <PacksScreen onClose={() => setShowPacks(false)} />
       )}
     </GameLayout>
   );

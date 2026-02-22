@@ -1,0 +1,453 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  padding: 0.5rem;
+  animation: fadeIn 200ms ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.panel {
+  background: var(--color-bg);
+  border-radius: var(--radius);
+  width: 100%;
+  max-width: 440px;
+  max-height: 90vh;
+  max-height: 90dvh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow);
+  animation: scaleIn 200ms ease-out;
+  overflow: hidden;
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 1rem 0.5rem;
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  flex: 1;
+}
+
+.closeBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-light);
+}
+
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* Section titles */
+.sectionTitle {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 0.5rem;
+}
+
+/* Pack card */
+.packCard {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.packCardHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.packIcon {
+  font-size: 1.4rem;
+  width: 2rem;
+  text-align: center;
+}
+
+.packName {
+  font-weight: 700;
+  flex: 1;
+  font-size: 0.95rem;
+}
+
+.packMeta {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.sourceBadge {
+  background: var(--color-primary);
+  color: white;
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
+.packCardDisabled .pairCardRow {
+  opacity: 0.4;
+}
+
+.packActions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.actionBtn {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-sm, 6px);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border, rgba(0,0,0,0.1));
+  color: var(--color-text);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.actionBtn:hover {
+  background: var(--color-bg);
+}
+
+.actionBtnDanger {
+  composes: actionBtn;
+  color: var(--color-danger, #e74c3c);
+  border-color: var(--color-danger, #e74c3c);
+}
+
+.emptyState {
+  text-align: center;
+  color: var(--color-text-light);
+  font-size: 0.9rem;
+  padding: 1rem 0;
+}
+
+/* Add forms */
+.addSection {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.addSectionTitle {
+  font-weight: 700;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.addSectionBody {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.inputRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.input {
+  flex: 1;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--color-border, rgba(0,0,0,0.15));
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-size: 0.9rem;
+  font-family: inherit;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.textarea {
+  composes: input;
+  resize: vertical;
+  min-height: 80px;
+}
+
+.submitBtn {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm, 6px);
+  background: var(--color-primary);
+  color: white;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.submitBtn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.errorMsg {
+  color: var(--color-danger, #e74c3c);
+  font-size: 0.8rem;
+  background: rgba(231, 76, 60, 0.08);
+  border-radius: var(--radius-sm, 6px);
+  padding: 0.4rem 0.6rem;
+}
+
+.previewBox {
+  background: var(--color-bg);
+  border-radius: var(--radius-sm, 6px);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  color: var(--color-text-light);
+  border: 1px solid var(--color-border, rgba(0,0,0,0.1));
+}
+
+/* Manual creator */
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.formLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+}
+
+.iconRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.iconPreview {
+  font-size: 1.5rem;
+  width: 2.5rem;
+  text-align: center;
+}
+
+.catRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--color-bg);
+  border-radius: var(--radius-sm, 6px);
+  padding: 0.4rem 0.6rem;
+}
+
+.catRowIcon {
+  font-size: 1rem;
+}
+
+.catRowLabel {
+  flex: 1;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.catRowCount {
+  font-size: 0.75rem;
+  color: var(--color-text-light);
+}
+
+.removeBtn {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-surface);
+  color: var(--color-text-light);
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pairRow {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.pairRowCat {
+  font-size: 0.7rem;
+  color: var(--color-text-light);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-shrink: 0;
+  max-width: 70px;
+}
+
+.addCatRow {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.addPairRow {
+  display: flex;
+  gap: 0.4rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.addPairField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  flex: 1;
+  min-width: 80px;
+}
+
+.addPairFieldLabel {
+  font-size: 0.7rem;
+  color: var(--color-text-light);
+}
+
+.catSelect {
+  composes: input;
+  flex: 1;
+}
+
+.pairCardRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.disabledBadge {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-text-light);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border, rgba(0,0,0,0.1));
+  border-radius: 999px;
+  padding: 0.1rem 0.45rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.pairSep {
+  color: var(--color-text-light);
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.pairSide {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.pairSideImg {
+  width: 2rem;
+  height: 2rem;
+  object-fit: contain;
+  flex-shrink: 0;
+  border-radius: 4px;
+}
+
+.pairSideEmoji {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.pairSideLabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pairDisplay {
+  font-size: 0.9rem;
+  font-weight: 600;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pairFormRows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.pairFormRow {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.4);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

@@ -30,6 +30,8 @@ vi.mock('../lib/storage', () => ({
   saveMrWhiteCannotStart: vi.fn(),
   loadAntiCheat: vi.fn(() => ({ allowPeek: true, peekAlarm: true, allowShowAll: true, showAllAlarm: true })),
   saveAntiCheat: vi.fn(),
+  loadCustomPairs: vi.fn(() => []),
+  saveCustomPairs: vi.fn(),
 }));
 
 const initialState = {
@@ -345,7 +347,7 @@ describe('gameStore', () => {
       useGameStore.setState({ undercoverCount: 2, mrWhiteCount: 1, intrusCount: 3, undercoverEnabled: true, mrWhiteEnabled: true, randomSplit: false, selectedCategories: ['food'] });
       useGameStore.getState().startGame(testNames, testEmojis, testColors);
 
-      expect(pickPair).toHaveBeenCalledWith(['food'], []);
+      expect(pickPair).toHaveBeenCalledWith(['food'], [], []);
       expect(createPlayers).toHaveBeenCalledWith(
         testNames,
         testEmojis,
