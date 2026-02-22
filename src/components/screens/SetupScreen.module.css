@@ -360,6 +360,36 @@
   cursor: pointer;
 }
 
+.removeBtn {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: none;
+  color: var(--color-text-light);
+  border: 2px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 150ms;
+  opacity: 0.5;
+}
+
+.removeBtn:active:not(:disabled) {
+  opacity: 1;
+  border-color: #e74c3c;
+  color: #e74c3c;
+  transform: scale(0.9);
+}
+
+.removeBtn:disabled {
+  opacity: 0.15;
+  cursor: default;
+}
+
 /* ── Drag handle ────────────────────────────── */
 .dragHandle {
   display: flex;

@@ -207,6 +207,28 @@ export default function SetupScreen() {
     setPlayerColors(move);
   }, []);
 
+  const removePlayer = useCallback((index: number) => {
+    setNames((prev) => {
+      const next = [...prev];
+      next.splice(index, 1);
+      next.push('');
+      return next;
+    });
+    setPlayerAvatars((prev) => {
+      const next = [...prev];
+      next.splice(index, 1);
+      next.push(AVATAR_EMOJIS[prev.length - 1] ?? AVATAR_EMOJIS[0]);
+      return next;
+    });
+    setPlayerColors((prev) => {
+      const next = [...prev];
+      next.splice(index, 1);
+      next.push(AVATAR_COLORS[prev.length - 1] ?? AVATAR_COLORS[0]);
+      return next;
+    });
+    setPlayerCount((c) => c - 1);
+  }, []);
+
   // ── Drag & drop state ──
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [overIndex, setOverIndex] = useState<number | null>(null);
@@ -352,6 +374,16 @@ export default function SetupScreen() {
               autoCapitalize="words"
               enterKeyHint={i < playerCount - 1 ? 'next' : 'done'}
             />
+            <button
+              type="button"
+              className={styles.removeBtn}
+              onClick={() => removePlayer(i)}
+              disabled={playerCount <= 3}
+              aria-label={`Supprimer le joueur ${i + 1}`}
+              tabIndex={-1}
+            >
+              ✕
+            </button>
           </div>
         ))}
       </form>
