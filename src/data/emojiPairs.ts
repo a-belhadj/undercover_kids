@@ -240,10 +240,8 @@ export const emojiPairs: EmojiPair[] = [
 
   // ── Dessins animés ─────────────────────────────────────
   // Ressemblance : univers, duo, style ou trait commun
-  { id: 'ct1', category: 'cartoons', civil: 'https://img.icons8.com/color/96/animation.png', undercover: 'https://img.icons8.com/color/96/goofy.png', civilLabel: 'Mickey', undercoverLabel: 'Dingo' },
+  { id: 'ct1', category: 'cartoons', civil: 'https://www.disneyclips.com/goodies/images/iconmickey.png', undercover: 'https://www.disneyclips.com/goodies/images/icongoofy.png', civilLabel: 'Mickey', undercoverLabel: 'Dingo' },
   { id: 'ct2', category: 'cartoons', civil: 'https://img.icons8.com/color/96/super-mario.png', undercover: 'https://img.icons8.com/color/96/luigi.png', civilLabel: 'Mario', undercoverLabel: 'Luigi' },
-  { id: 'ct4', category: 'cartoons', civil: 'https://img.icons8.com/color/96/simba.png', undercover: 'https://img.icons8.com/color/96/timon.png', civilLabel: 'Simba', undercoverLabel: 'Timon' },
-  { id: 'ct5', category: 'cartoons', civil: 'https://img.icons8.com/color/96/pikachu-pokemon.png', undercover: 'https://img.icons8.com/color/96/charmander.png', civilLabel: 'Pikachu', undercoverLabel: 'Salamèche' },
   { id: 'ct6', category: 'cartoons', civil: 'https://www.disneyclips.com/goodies/images/iconelsa.png', undercover: 'https://www.disneyclips.com/goodies/images/iconanna2.png', civilLabel: 'Elsa', undercoverLabel: 'Anna' },
   { id: 'ct7', category: 'cartoons', civil: 'https://www.disneyclips.com/goodies/images/iconolaf.png', undercover: 'https://www.disneyclips.com/goodies/images/iconsven.png', civilLabel: 'Olaf', undercoverLabel: 'Sven' },
   { id: 'ct8', category: 'cartoons', civil: 'https://www.disneyclips.com/goodies/images/iconmickey.png', undercover: 'https://www.disneyclips.com/goodies/images/iconminnie.png', civilLabel: 'Mickey', undercoverLabel: 'Minnie' },
